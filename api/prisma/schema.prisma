@@ -1,0 +1,29 @@
+// Prisma Client
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Database (URL ada di prisma.config.ts)
+datasource db {
+  provider = "postgresql"
+}
+
+// Status mahasiswa
+enum Status {
+  AKTIF
+  CUTI
+  TIDAK_AKTIF
+  LULUS
+}
+
+// Tabel Mahasiswa
+model Mahasiswa {
+  npm          String   @id @unique        // Primary key
+  nama         String                   // Nama mahasiswa
+  programStudi String                   // Prodi
+  angkatan     String                    // Angkatan
+  alamat       String?                  // Opsional
+  status       Status   @default(AKTIF) // Default: aktif
+  createdAt    DateTime @default(now()) // Tanggal dibuat
+  updatedAt    DateTime @updatedAt      // Auto update
+}
