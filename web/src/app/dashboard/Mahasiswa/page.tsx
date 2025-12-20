@@ -1,122 +1,136 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Poppins } from 'next/font/google';
+import { useRouter } from "next/navigation";
+import { Mail, MessageSquare, Megaphone, ChevronRight, LogOut } from "lucide-react";
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  display: 'swap',
+});
 
 export default function MahasiswaDashboard() {
-  const [npm, setNpm] = useState("");
-  const [error, setError] = useState("");
+  const router = useRouter();
+  
+  // 1. Inisialisasi state langsung dari localStorage (Cara Paling Aman)
+  const [userName, setUserName] = useState<string>("");
+  const [userNPM, setUserNPM] = useState<string>("");
 
-  const handleSearch = () => {
-    if (npm.trim() === "") {
-      setError("Masukkan NPM terlebih dahulu.");
-      return;
-    }
-    setError("Mahasiswa tidak ditemukan."); // dummy message
+  const doLogout = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    router.replace("/");
   };
 
+  useEffect(() => {
+    // 2. Ambil data hanya sekali saat komponen muncul di layar
+    const token = localStorage.getItem("user_token");
+    const role = localStorage.getItem("user_role"); // Tambahan untuk cek role
+    const savedName = localStorage.getItem("userName");
+    const savedNPM = localStorage.getItem("userNPM");
+
+    // LOGIKA PENGAMAN: Jika tidak ada token ATAU role bukan MAHASISWA, tendang keluar
+    if (!token || role !== "MAHASISWA") {
+      doLogout();
+    } else {
+      // Gunakan pengecekan sederhana untuk mengupdate UI
+      if (savedName) setUserName(savedName);
+      if (savedNPM) setUserNPM(savedNPM);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Array kosong memastikan ini cuma jalan 1 kali
+
   return (
-    <div className="min-h-screen bg-[#f7fbff] py-10 flex justify-center">
-      <div className="w-full max-w-6xl space-y-8">
-
-        {/* HEADER */}
-        <div className="bg-gradient-to-r from-blue-400 to-blue-500 text-white p-8 rounded-2xl shadow-lg flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Dashboard Mahasiswa</h1>
-            <p className="text-blue-100">Akses cepat data akademik mahasiswa.</p>
+    <div className={`${poppins.className} min-h-screen bg-[#fcfcfc] pb-10`}>
+      <div className="max-w-7xl mx-auto px-4 md:px-10 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          
+          {/* KOLOM KIRI: PENGUMUMAN */}
+          <div className="lg:col-span-3 space-y-4">
+            <div className="bg-white border border-gray-200 shadow-sm rounded-sm">
+              <div className="bg-[#f8f9fa] px-4 py-2 border-b border-gray-200 text-[#0056b3] font-bold text-[11px] uppercase flex items-center gap-2">
+                <Megaphone size={13} /> Pengumuman
+              </div>
+              <div className="p-4 space-y-4 text-[11px]">
+                <p className="text-[#d9534f] font-bold uppercase border-b border-gray-100 pb-1">Informasi Akademik</p>
+                <ul className="text-[#0056b3] space-y-2 font-medium">
+                  <li className="hover:underline cursor-pointer flex items-center gap-1">
+                    <ChevronRight size={10} /> Jadwal Penginputan Genap
+                  </li>
+                  <li className="hover:underline cursor-pointer flex items-center gap-1">
+                    <ChevronRight size={10} /> Pengajuan Kelas Baru
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
 
-          <div className="w-20 h-20 rounded-full bg-white/30 flex items-center justify-center border border-white/40">
-            <span className="text-lg">🎓</span>
+          {/* KOLOM TENGAH: ISI UTAMA */}
+          <div className="lg:col-span-6 space-y-5">
+            <div className="bg-white border border-gray-200 p-6 shadow-sm rounded-sm">
+              <h1 className="text-[#0056b3] font-bold text-base mb-2 uppercase tracking-tight">
+                Selamat Datang, {userName}
+              </h1>
+              <p className="text-gray-500 text-[11px] leading-relaxed">
+                Portal Akademik Universitas Teknokrat Indonesia. Gunakan fasilitas ini untuk memantau perkembangan akademik Anda secara real-time.
+              </p>
+            </div>
+
+            <div className="bg-[#fff9e6] border border-[#ffeeba] p-4 rounded-sm flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-3">
+                <Mail size={16} className="text-[#856404]" />
+                <span className="text-[11px] text-[#856404]">Anda memiliki ( <b>0</b> ) pesan baru</span>
+              </div>
+              <button className="bg-white border border-gray-300 px-3 py-1 text-[9px] font-bold uppercase text-gray-600 hover:bg-gray-50">Masuk</button>
+            </div>
+
+            <div className="bg-white border border-gray-200 shadow-sm rounded-sm">
+              <div className="bg-[#f8f9fa] px-4 py-2 border-b border-gray-200 text-[#0056b3] font-bold text-[11px] uppercase">
+                Diskusi Terbaru
+              </div>
+              <div className="p-12 text-center text-gray-300 text-[11px] italic">
+                <MessageSquare className="mx-auto mb-2 opacity-20" size={30} />
+                Tidak ada diskusi terbaru.
+              </div>
+            </div>
           </div>
+
+          {/* KOLOM KANAN: PROFIL (OTOMATIS) */}
+          <div className="lg:col-span-3 space-y-4">
+            <div className="bg-white border border-gray-200 p-5 shadow-sm rounded-sm text-center">
+              <div className="bg-[#f8f9fa] py-1 mb-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest border border-gray-100">Informasi Pengguna</div>
+              <div className="w-28 h-36 bg-gray-50 border border-gray-200 mx-auto mb-3 flex items-center justify-center text-[9px] text-gray-300 font-bold uppercase p-2 text-center">
+                Photo {userNPM}
+              </div>
+              
+              {/* NAMA & NPM OTOMATIS */}
+              <h3 className="text-[#0056b3] font-bold text-[11px] uppercase mb-1 truncate px-2">{userName}</h3>
+              <p className="text-gray-500 text-[10px] font-bold">{userNPM}</p>
+              <p className="text-gray-400 text-[9px] uppercase italic">S1 Informatika</p>
+              
+              <button 
+                onClick={doLogout} 
+                className="mt-5 text-[#d9534f] text-[10px] font-bold hover:underline flex items-center justify-center gap-1 mx-auto w-full pt-3 border-t border-gray-50 uppercase tracking-wider"
+              >
+                <LogOut size={12} /> Logout
+              </button>
+            </div>
+
+            <div className="bg-white border border-gray-200 shadow-sm rounded-sm overflow-hidden">
+              <div className="bg-[#f8f9fa] px-4 py-2 text-[#d9534f] font-bold text-[11px] uppercase border-b border-gray-200">Academics</div>
+              <div className="p-1">
+                {['Halaman Depan', 'KRS', 'KHS'].map((item) => (
+                  <div key={item} className="flex items-center gap-2 p-2.5 text-[10px] text-[#856404] hover:bg-yellow-50 cursor-pointer group transition-all">
+                    <ChevronRight size={10} className="text-gray-300 group-hover:text-yellow-600" /> {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
         </div>
-
-        {/* SEARCH SECTION */}
-        <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-700 mb-2">Cari Mahasiswa (NPM)</h2>
-
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={npm}
-              onChange={(e) => setNpm(e.target.value)}
-              placeholder="Masukkan NPM mahasiswa"
-              className="flex-1 border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <button
-              onClick={handleSearch}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg shadow"
-            >
-              Cari
-            </button>
-          </div>
-
-          {error && <p className="text-red-600 mt-2 text-sm">{error}</p>}
-        </div>
-
-        {/* RESULT GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="bg-white p-5 rounded-xl shadow border border-gray-100">
-            <p className="text-gray-500">SKS Tervalidasi</p>
-            <h3 className="text-3xl font-bold text-blue-600">92</h3>
-          </div>
-
-          <div className="bg-white p-5 rounded-xl shadow border border-gray-100">
-            <p className="text-gray-500">IPK</p>
-            <h3 className="text-3xl font-bold text-blue-600">3.56</h3>
-          </div>
-
-          <div className="bg-white p-5 rounded-xl shadow border border-gray-100">
-            <p className="text-gray-500">Semester</p>
-            <h3 className="text-3xl font-bold text-blue-600">6</h3>
-          </div>
-        </div>
-
-        {/* HASIL PENCARIAN */}
-        <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-700 mb-1">
-            Hasil Pencarian
-          </h2>
-          <p className="text-gray-500 text-sm">
-            Hasil akan muncul di sini setelah pencarian dilakukan.
-          </p>
-        </div>
-
-        {/* TABEL AKADEMIK */}
-        <div className="bg-white p-6 rounded-xl shadow-xl border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">
-            Riwayat Akademik
-          </h2>
-
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-blue-50 text-blue-700">
-                <th className="p-3 border">Semester</th>
-                <th className="p-3 border">Mata Kuliah</th>
-                <th className="p-3 border">SKS</th>
-                <th className="p-3 border">Nilai</th>
-                <th className="p-3 border">Grade</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="p-3 border">Ganjil 2023/2024</td>
-                <td className="p-3 border">Algoritma & Struktur Data</td>
-                <td className="p-3 border">3</td>
-                <td className="p-3 border">88</td>
-                <td className="p-3 border font-bold text-blue-600">A</td>
-              </tr>
-
-              <tr className="bg-gray-50">
-                <td className="p-3 border">Ganjil 2023/2024</td>
-                <td className="p-3 border">Basis Data</td>
-                <td className="p-3 border">3</td>
-                <td className="p-3 border">85</td>
-                <td className="p-3 border font-bold text-blue-600">A-</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
       </div>
     </div>
   );
