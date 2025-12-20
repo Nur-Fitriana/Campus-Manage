@@ -110,13 +110,13 @@ model Mahasiswa {
 
 model Dosen {
   id             String       @id @default(uuid())
-  nip            String       @unique
+  nip            String?      @unique
   userId         String       @unique
   nidn           String?      @unique
   namaLengkap    String
   jenisKelamin   JenisKelamin
   tempatLahir    String
-  tanggalLahir   DateTime
+  tanggalLahir   DateTime?
   alamat         String       @db.Text
   noTelepon      String
   email          String
