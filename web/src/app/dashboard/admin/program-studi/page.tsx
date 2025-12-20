@@ -1,155 +1,74 @@
 "use client";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Plus, UserCircle, Home, Database, BookOpen, Layers, RefreshCw } from "lucide-react";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import axios from "axios";
-import { toast } from "sonner";
-import { 
-  ArrowLeft, 
-  Save, 
-  Info, 
-  Database, 
-  BookOpen, 
-  Code 
-} from "lucide-react";
+export default function DataProdi() {
+  const [list, setList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-// Mocking function filter seperti di contohmu
-// Sesuaikan dengan import riil di projectmu jika ada
-const filterTeks = (val: string) => val.toUpperCase().replace(/[^A-Z0-9 ]/g, "");
-
-export default function AddProdiPage() {
-  const router = useRouter();
-
-  // State Form
-  const [formKode, setFormKode] = useState("");
-  const [formNama, setFormNama] = useState("");
-
-  // State Error Validation
-  const [error, setError] = useState({
-    kode: false,
-    nama: false,
-  });
-
-  // Fungsi Simpan Data
-  const saveData = async () => {
-    // Validasi
-    const errorStatus = {
-      kode: formKode.trim() === "",
-      nama: formNama.trim() === "",
-    };
-
-    setError(errorStatus);
-
-    if (errorStatus.kode || errorStatus.nama) {
-      toast.error("Mohon lengkapi seluruh data!");
-      return;
-    }
-
-    try {
-      // Sesuaikan URL API dengan port backendmu (3004)
-      const response = await axios.post("http://localhost:3004/api/dashboard/admin/program-studi", {
-        kode: formKode,
-        nama: formNama,
+  useEffect(() => {
+    fetch("http://localhost:3004/api/dashboard/admin/program-studi")
+      .then(res => res.json())
+      .then(json => { 
+        console.log("Cek Data API Prodi:", json); // Lihat di F12 (Console) browser
+        // Jika API mengirim { data: [...] } maka ganti json.prodi jadi json.data
+        if(json.prodi) {
+          setList(json.prodi);
+        } else if (json.data) {
+          setList(json.data);
+        }
+        setLoading(false); 
+      })
+      .catch(err => {
+        console.error("Gagal ambil data:", err);
+        setLoading(false);
       });
-
-      if (response.data.success) {
-        toast.success("Program Studi Berhasil Ditambahkan!");
-        router.push("/dashboard/admin/program-studi");
-      } else {
-        toast.error(response.data.message || "Gagal menyimpan data");
-      }
-    } catch (err) {
-      toast.error("Gagal terhubung ke server!");
-    }
-  };
+  }, []);
 
   return (
-    <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <title>Tambah Program Studi | Campus Manage</title>
+    <div className="grid grid-cols-12 gap-6 animate-in slide-in-from-bottom-4 duration-500">
+      <div className="col-span-8">
+        <div className="bg-white border border-gray-100 shadow-sm rounded-[2rem] p-8 min-h-[500px]">
+          <div className="flex justify-between mb-8 border-b pb-4 items-center">
+            <div>
+              <h2 className="text-[#800000] font-black text-2xl italic uppercase tracking-tighter flex items-center gap-2">
+                <Database size={24} /> Program Studi
+              </h2>
+              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Struktur Akademik Kampus</p>
+            </div>
+            <button className="bg-[#800000] text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase shadow-md flex items-center gap-2">
+              <Plus size={14} strokeWidth={3} /> Tambah Prodi
+            </button>
+          </div>
 
-      {/* Header Halaman */}
-      <div className="flex items-center gap-4 mb-10">
-        <Button 
-          variant="ghost" 
-          className="rounded-full w-12 h-12 p-0 hover:bg-red-50 hover:text-[#800000]"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft size={24} />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-black text-slate-800 italic uppercase tracking-tighter leading-none">
-            Tambah <span className="text-[#800000]">Prodi</span>
-          </h1>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-2">Input Struktur Akademik Baru</p>
+          <div className="grid grid-cols-2 gap-4">
+            {loading ? (
+              <div className="col-span-2 text-center p-20 font-black text-[#800000] animate-pulse italic uppercase flex flex-col items-center gap-2">
+                <RefreshCw className="animate-spin" /> Menyinkronkan Data...
+              </div>
+            ) : list?.map((p) => (
+              <div key={p.id || p.kode} className="p-6 bg-gray-50 border border-gray-100 rounded-[1.5rem] group hover:border-[#800000] transition-all">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-[#800000] mb-3 shadow-sm group-hover:bg-[#800000] group-hover:text-white transition-all">
+                  <BookOpen size={20} />
+                </div>
+                <h4 className="font-black text-gray-800 uppercase italic text-sm">{p.nama}</h4>
+                <p className="text-[9px] text-[#800000] font-black uppercase mt-1">Kode: {p.kode}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Form Card */}
-      <div className="bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-sm space-y-8">
-        
-        {/* Input Kode Prodi */}
-        <section className="space-y-3">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-            <Code size={14} className="text-[#800000]" /> Kode Program Studi
-          </Label>
-          <Input
-            className="h-14 rounded-2xl bg-slate-50 border-none focus-visible:ring-2 focus-visible:ring-[#800000]/20 font-bold text-slate-700"
-            placeholder="Contoh: IF, SI, AK..."
-            maxLength={5}
-            value={formKode}
-            onChange={(e) => setFormKode(filterTeks(e.target.value))}
-          />
-          {error.kode && (
-            <p className="text-[10px] font-bold text-red-500 uppercase flex items-center gap-1 mt-1 italic">
-              <Info size={12} /> Kode Prodi wajib diisi!
-            </p>
-          )}
-        </section>
-
-        {/* Input Nama Prodi */}
-        <section className="space-y-3">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-            <BookOpen size={14} className="text-[#800000]" /> Nama Program Studi
-          </Label>
-          <Input
-            className="h-14 rounded-2xl bg-slate-50 border-none focus-visible:ring-2 focus-visible:ring-[#800000]/20 font-bold text-slate-700"
-            placeholder="Contoh: Informatika..."
-            value={formNama}
-            onChange={(e) => setFormNama(e.target.value)}
-          />
-          {error.nama && (
-            <p className="text-[10px] font-bold text-red-500 uppercase flex items-center gap-1 mt-1 italic">
-              <Info size={12} /> Nama Prodi wajib diisi!
-            </p>
-          )}
-        </section>
-
-        {/* Tombol Aksi */}
-        <div className="flex gap-4 pt-6">
-          <Button
-            className="flex-1 h-14 rounded-2xl bg-[#800000] hover:bg-black text-white font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-red-900/20 gap-2"
-            onClick={saveData}
-          >
-            <Save size={18} /> Simpan Data
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1 h-14 rounded-2xl border-2 border-slate-100 font-black uppercase tracking-widest text-[11px] text-slate-400 hover:bg-slate-50 transition-all"
-            onClick={() => router.push("/dashboard/admin/program-studi")}
-          >
-            Batal
-          </Button>
+      <div className="col-span-4">
+        <div className="bg-white border border-gray-100 rounded-[2rem] p-8 text-center shadow-sm sticky top-10">
+          <UserCircle size={80} className="mx-auto text-gray-200 mb-4" />
+          <h3 className="font-black text-[#800000] uppercase italic">Admin Sistem</h3>
+          <p className="text-[9px] text-gray-400 font-bold mb-8 uppercase tracking-widest">Portal Administrasi</p>
+          <Link href="/dashboard/admin" className="w-full flex items-center justify-center gap-2 py-4 border-2 border-[#800000] text-[#800000] rounded-xl font-black text-[10px] uppercase hover:bg-[#800000] hover:text-white transition-all shadow-sm group">
+            <Home size={14} /> Kembali ke Beranda
+          </Link>
         </div>
-      </div>
-
-      {/* Footer Decoration */}
-      <div className="mt-10 flex flex-col items-center opacity-20">
-        <Database size={40} className="text-slate-300" />
-        <div className="h-10 w-[1px] bg-slate-300 mt-2"></div>
       </div>
     </div>
   );
