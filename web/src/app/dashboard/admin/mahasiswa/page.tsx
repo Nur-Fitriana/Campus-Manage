@@ -135,7 +135,7 @@ export default function DataMahasiswa() {
             href="/dashboard/admin"
             className="w-full flex items-center justify-center gap-2 py-4 border-2 border-[#800000] text-[#800000] rounded-xl font-black text-[10px] uppercase hover:bg-[#800000] hover:text-white transition-all shadow-sm"
           >
-            <Home size={14} /> Kembali ke Console
+            <Home size={14} /> Kembali ke Beranda
           </Link>
         </div>
       </div>
