@@ -119,4 +119,20 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* --- FIX AUTOFILL BLUE COLOR --- */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 1000px #f9fafb inset !important; /* Warna bg-gray-50 */
+      -webkit-text-fill-color: black !important;
+      transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* Menghilangkan icon reveal password & clear bawaan browser */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
 }
