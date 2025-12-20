@@ -1,0 +1,214 @@
+"use client";
+import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { 
+  Save, 
+  ArrowLeft, 
+  User, 
+  Mail, 
+  MapPin, 
+  Phone, 
+  ChevronDown, 
+  BookOpen, 
+  Hash, 
+  Calendar, 
+  VenusAndMars 
+} from "lucide-react";
+import Link from "next/link";
+
+export default function TambahMahasiswa() {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [form, setForm] = useState({
+    npm: "",
+    namaLengkap: "",
+    email: "",
+    noTelepon: "",
+    alamat: "",
+    jenisKelamin: "LAKI_LAKI",
+    tanggalLahir: "2000-01-01",
+    angkatan: "2024",
+    programStudiId: "" // WAJIB DIISI UUID DARI PRISMA STUDIO
+  });
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      // PROSES SANITASI DATA (Agar sinkron dengan Backend)
+      const payload = {
+        ...form,
+        angkatan: parseInt(form.angkatan), // Mengubah string ke number untuk Backend
+        // Pastikan programStudiId tidak kosong
+      };
+
+      if (!payload.programStudiId || payload.programStudiId.includes("ID-UUID")) {
+        alert("❌ Silakan pilih Program Studi yang valid!");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const res = await fetch("http://localhost:3004/api/dashboard/admin/mahasiswa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+
+      if (res.ok && result.success) {
+        alert("✅ Mahasiswa Berhasil Ditambahkan!");
+        router.push("/dashboard/admin/mahasiswa");
+        router.refresh();
+      } else {
+        // Menampilkan pesan error spesifik dari Backend
+        alert("❌ Gagal: " + (result.message || "Periksa konsol browser untuk detail error"));
+        console.error("Detail Error:", result);
+      }
+    } catch (error) {
+      alert("❌ Terjadi kesalahan koneksi ke server");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f8f9fa] py-8 px-6">
+      <div className="max-w-5xl mx-auto bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 p-8 md:p-12">
+        
+        <Link href="/dashboard/admin/mahasiswa" className="inline-flex items-center gap-2 mb-8 text-gray-400 hover:text-[#800000] font-bold text-xs uppercase tracking-widest transition-all">
+          <ArrowLeft size={16} /> Kembali ke Daftar
+        </Link>
+
+        <div className="mb-10">
+          <h1 className="text-4xl font-black italic uppercase text-[#800000] tracking-tighter leading-none">
+            Tambah Mahasiswa Baru
+          </h1>
+          <div className="h-1.5 w-20 bg-[#800000] mt-4 rounded-full"></div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+          
+          {/* NPM - Hanya Angka */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
+              <Hash size={14} className="text-[#800000]"/> Nomor Pokok Mahasiswa
+            </label>
+            <input 
+              required 
+              value={form.npm} 
+              onChange={e => setForm({...form, npm: e.target.value.replace(/\D/g, "")})} 
+              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 focus:bg-white outline-none font-bold text-sm transition-all shadow-sm" 
+              placeholder="Contoh: 23312036" 
+            />
+          </div>
+
+          {/* Nama */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
+              <User size={14} className="text-[#800000]"/> Nama Lengkap
+            </label>
+            <input 
+              required 
+              value={form.namaLengkap} 
+              onChange={e => setForm({...form, namaLengkap: e.target.value})} 
+              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 focus:bg-white outline-none font-bold text-sm transition-all shadow-sm" 
+              placeholder="Nama Lengkap..." 
+            />
+          </div>
+
+          {/* Program Studi - PASTI KAN VALUE ADALAH UUID */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
+              <BookOpen size={14} className="text-[#800000]"/> Program Studi
+            </label>
+            <div className="relative">
+              <select 
+                required 
+                value={form.programStudiId} 
+                onChange={e => setForm({...form, programStudiId: e.target.value})} 
+                className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 focus:bg-white outline-none font-bold text-sm appearance-none cursor-pointer shadow-sm"
+              >
+                <option value="">Pilih Jurusan</option>
+                {/* GANTI "MASUKKAN-UUID-DISINI" dengan ID asli dari Prisma Studio 
+                   Contoh: value="550e8400-e2b..."
+                */}
+                <option value="MASUKKAN-UUID-INFORMATIKA-DISINI">Informatika</option>
+                <option value="MASUKKAN-UUID-SI-DISINI">Sistem Informasi</option>
+              </select>
+              <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Jenis Kelamin */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
+              <VenusAndMars size={14} className="text-[#800000]"/> Jenis Kelamin
+            </label>
+            <div className="relative">
+              <select value={form.jenisKelamin} onChange={e => setForm({...form, jenisKelamin: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 focus:bg-white outline-none font-bold text-sm appearance-none cursor-pointer shadow-sm">
+                <option value="LAKI_LAKI">LAKI-LAKI</option>
+                <option value="PEREMPUAN">PEREMPUAN</option>
+              </select>
+              <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Angkatan & Tanggal Lahir */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Angkatan</label>
+              <input type="number" value={form.angkatan} onChange={e => setForm({...form, angkatan: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent outline-none font-bold text-sm shadow-sm" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Tgl Lahir</label>
+              <input type="date" value={form.tanggalLahir} onChange={e => setForm({...form, tanggalLahir: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent outline-none font-bold text-sm shadow-sm" />
+            </div>
+          </div>
+
+          {/* Email */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
+              <Mail size={14} className="text-[#800000]"/> Email Akademik
+            </label>
+            <input required type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent outline-none font-bold text-sm shadow-sm" placeholder="email@student.com" />
+          </div>
+
+          {/* Nomor Telepon */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 ml-1">
+              <Phone size={14} className="text-[#800000]"/> WhatsApp / Telepon
+            </label>
+            <input 
+              type="text" 
+              value={form.noTelepon} 
+              onChange={e => setForm({...form, noTelepon: e.target.value.replace(/\D/g, "").slice(0, 13)})} 
+              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 focus:bg-white outline-none font-bold text-sm shadow-sm" 
+              placeholder="0812..." 
+            />
+          </div>
+
+          {/* Alamat */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 ml-1"><MapPin size={14} className="text-[#800000]"/> Alamat Lengkap</label>
+            <input value={form.alamat} onChange={e => setForm({...form, alamat: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent outline-none font-bold text-sm shadow-sm" placeholder="Jl. Contoh..." />
+          </div>
+
+          {/* Button */}
+          <div className="md:col-span-2 pt-6">
+            <button 
+              type="submit" 
+              disabled={isSubmitting} 
+              className="w-full bg-[#800000] hover:bg-black text-white py-5 rounded-2xl font-black uppercase text-xs tracking-[0.5em] transition-all flex items-center justify-center gap-4 shadow-xl active:scale-[0.98] disabled:opacity-50"
+            >
+              <Save size={20} /> 
+              {isSubmitting ? "MEMPROSES DATA..." : "SIMPAN DATA MAHASISWA"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
