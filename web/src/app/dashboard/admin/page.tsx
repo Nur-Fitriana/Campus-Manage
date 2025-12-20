@@ -33,4 +33,4 @@ export default function DashboardAdmin() {
       </div>
     </div>
   );
-}// update by trilia 3
+}
