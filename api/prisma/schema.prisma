@@ -1,29 +1,311 @@
-// Prisma Client
+// This is your Prisma schema file
+// SIAKAD Universitas Teknokrat Indonesia
+
 generator client {
   provider = "prisma-client-js"
 }
 
-// Database (URL ada di prisma.config.ts)
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// Status mahasiswa
-enum Status {
+// ============= ENUMS =============
+
+enum Role {
+  ADMIN
+  DOSEN
+  MAHASISWA
+}
+
+enum StatusMahasiswa {
   AKTIF
   CUTI
-  TIDAK_AKTIF
+  NON_AKTIF
   LULUS
+  DROP_OUT
 }
 
-// Tabel Mahasiswa
+enum JenisKelamin {
+  LAKI_LAKI
+  PEREMPUAN
+}
+
+enum Semester {
+  GANJIL
+  GENAP
+}
+
+enum StatusKRS {
+  DRAFT
+  DIAJUKAN
+  DISETUJUI
+  DITOLAK
+}
+
+enum Grade {
+  A
+  B
+  C
+  D
+  E
+}
+
+// ============= MODELS =============
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique // NPM mahasiswa atau NIP dosen
+  email     String   @unique
+  password  String
+  role      Role
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mahasiswa Mahasiswa?
+  dosen     Dosen?
+
+  @@index([username])
+  @@index([email])
+}
+
 model Mahasiswa {
-  npm          String   @id @unique        // Primary key
-  nama         String                   // Nama mahasiswa
-  programStudi String                   // Prodi
-  angkatan     String                    // Angkatan
-  alamat       String?                  // Opsional
-  status       Status   @default(AKTIF) // Default: aktif
-  createdAt    DateTime @default(now()) // Tanggal dibuat
-  updatedAt    DateTime @updatedAt      // Auto update
+  id             String          @id @default(uuid())
+  npm            String          @unique
+  userId         String          @unique
+  namaLengkap    String
+  jenisKelamin   JenisKelamin
+  tempatLahir    String
+  tanggalLahir   DateTime
+  alamat         String          @db.Text
+  noTelepon      String
+  email          String
+  angkatan       Int
+  semesterAktif  Int             @default(1)
+  ipk            Float           @default(0)
+  totalSKS       Int             @default(0)
+  totalSKSLulus  Int             @default(0)
+  status         StatusMahasiswa @default(AKTIF)
+  programStudiId String
+  dosenWaliId    String?
+  foto           String?
+  nik            String?
+  nisn           String?
+  namaIbu        String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programStudi ProgramStudi @relation(fields: [programStudiId], references: [id])
+  dosenWali    Dosen?       @relation("DosenWaliKeMahasiswa", fields: [dosenWaliId], references: [id])
+  krs          KRS[]
+  nilai        Nilai[]
+  kehadiran    Kehadiran[]
+  ipkSemester  IpkSemester[]
+
+  @@index([npm])
+  @@index([programStudiId])
+}
+
+model Dosen {
+  id             String       @id @default(uuid())
+  nip            String       @unique
+  userId         String       @unique
+  nidn           String?      @unique
+  namaLengkap    String
+  jenisKelamin   JenisKelamin
+  tempatLahir    String
+  tanggalLahir   DateTime
+  alamat         String       @db.Text
+  noTelepon      String
+  email          String
+  pendidikan     String?
+  jabatan        String?
+  programStudiId String?
+  foto           String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programStudi       ProgramStudi?   @relation(fields: [programStudiId], references: [id])
+  mataKuliahDiajar   MataKuliahDosen[]
+  kelasWali          Kelas[]         @relation("DosenWaliKeKelas")
+  kelasMengajar      Kelas[]         @relation("DosenPengampuKeKelas")
+  kehadiranDiajarkan Kehadiran[]
+  mahasiswaWali      Mahasiswa[]     @relation("DosenWaliKeMahasiswa")
+
+  @@index([nip])
+}
+
+model ProgramStudi {
+  id                String   @id @default(uuid())
+  kode              String   @unique
+  nama              String
+  jenjang           String
+  fakultas          String
+  akreditasi        String?
+  ketuaProgramStudi String?  // Nama Kaprodi
+  visi              String?  @db.Text
+  misi              String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  mahasiswa  Mahasiswa[]
+  mataKuliah MataKuliah[]
+  dosen      Dosen[]
+
+  @@index([kode])
+}
+
+model MataKuliah {
+  id                  String   @id @default(uuid())
+  kode                String   @unique
+  nama                String
+  namaInggris         String?  // Terjemahan MK untuk ijazah
+  sks                 Int
+  semester            Int
+  jenisMK             String   @default("WAJIB")
+  deskripsi           String?  @db.Text
+  silabus             String?  @db.Text // Rencana pembelajaran
+  capaianPembelajaran String?  @db.Text
+  programStudiId      String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  programStudi   ProgramStudi          @relation(fields: [programStudiId], references: [id])
+  dosen          MataKuliahDosen[]
+  kelas          Kelas[]
+  prasyarat      MataKuliahPrasyarat[] @relation("MataKuliahUtama")
+  diprasyaratkan MataKuliahPrasyarat[] @relation("MataKuliahSyarat")
+
+  @@index([kode])
+}
+
+model MataKuliahDosen {
+  id           String   @id @default(uuid())
+  mataKuliahId String
+  dosenId      String
+  createdAt    DateTime @default(now())
+
+  mataKuliah MataKuliah @relation(fields: [mataKuliahId], references: [id], onDelete: Cascade)
+  dosen      Dosen      @relation(fields: [dosenId], references: [id], onDelete: Cascade)
+
+  @@unique([mataKuliahId, dosenId])
+}
+
+model MataKuliahPrasyarat {
+  id           String   @id @default(uuid())
+  mataKuliahId String
+  prasyaratId  String
+  nilaiMinimal String?
+  createdAt    DateTime @default(now())
+
+  mataKuliah MataKuliah @relation("MataKuliahUtama", fields: [mataKuliahId], references: [id], onDelete: Cascade)
+  prasyarat  MataKuliah @relation("MataKuliahSyarat", fields: [prasyaratId], references: [id], onDelete: Cascade)
+
+  @@unique([mataKuliahId, prasyaratId])
+}
+
+model Kelas {
+  id              String   @id @default(uuid())
+  kode            String   @unique
+  mataKuliahId    String
+  dosenPengampuId String
+  dosenWaliId     String?
+  tahunAjaran     String
+  semester        Semester
+  ruangan         String
+  kapasitas       Int
+  terisi          Int      @default(0)
+  jadwal          String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  mataKuliah    MataKuliah @relation(fields: [mataKuliahId], references: [id])
+  dosenPengampu Dosen      @relation("DosenPengampuKeKelas", fields: [dosenPengampuId], references: [id])
+  dosenWali     Dosen?     @relation("DosenWaliKeKelas", fields: [dosenWaliId], references: [id])
+  krs           KRS[]
+  nilai         Nilai[]
+  kehadiran     Kehadiran[]
+
+  @@index([kode])
+}
+
+model KRS {
+  id          String    @id @default(uuid())
+  mahasiswaId String
+  kelasId     String
+  tahunAjaran String
+  semester    Semester
+  status      StatusKRS @default(DRAFT)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  mahasiswa Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  kelas     Kelas     @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+
+  @@unique([mahasiswaId, kelasId, tahunAjaran, semester])
+}
+
+model Nilai {
+  id          String   @id @default(uuid())
+  mahasiswaId String
+  kelasId     String
+  tahunAjaran String
+  semesterKe  Int
+  nilaiTugas  Float?   @default(0)
+  nilaiQuiz   Float?   @default(0)
+  nilaiUTS    Float?   @default(0)
+  nilaiUAS    Float?   @default(0)
+  nilaiAkhir  Float?   @default(0)
+  grade       Grade?
+  bobot       Float?   @default(0)
+  mutu        Float?   @default(0)
+  keterangan  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mahasiswa Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  kelas     Kelas     @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+
+  @@unique([mahasiswaId, kelasId])
+}
+
+model IpkSemester {
+  id                String   @id @default(uuid())
+  mahasiswaId       String
+  tahunAjaran       String
+  semesterKe        Int
+  semester          Semester
+  totalSKS          Int
+  totalMutu         Float
+  ips               Float
+  ipk               Float
+  totalSKSKumulatif Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  mahasiswa Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+
+  @@unique([mahasiswaId, tahunAjaran, semesterKe])
+}
+
+model Kehadiran {
+  id          String   @id @default(uuid())
+  mahasiswaId String
+  kelasId     String
+  dosenId     String
+  tanggal     DateTime
+  pertemuan   Int
+  status      String
+  keterangan  String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mahasiswa Mahasiswa @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  kelas     Kelas     @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  dosen     Dosen     @relation(fields: [dosenId], references: [id])
+
+  @@unique([mahasiswaId, kelasId, pertemuan])
 }
