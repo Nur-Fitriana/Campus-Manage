@@ -10,7 +10,7 @@ export default function TambahDosen() {
   const [daftarProdi, setDaftarProdi] = useState<{ id: string, nama: string }[]>([]);
 
   const [form, setForm] = useState({
-    nidn: "",
+    nip: "",
     namaLengkap: "",
     email: "",
     noTelepon: "",
@@ -20,13 +20,17 @@ export default function TambahDosen() {
     jenisKelamin: ""
   });
 
-  // Load Program Studi dari Port 3004
   useEffect(() => {
     const fetchProdi = async () => {
       try {
-        const res = await fetch("/api/dashboard/admin/program-studi/");
+        // Tambahkan alamat lengkap port 3004
+        const res = await fetch("http://localhost:3004/api/dashboard/admin/program-studi"); 
         const result = await res.json();
-        if (result.success) setDaftarProdi(result.data);
+        
+        // Pastikan struktur result.data sesuai dengan yang dikirim backend
+        if (result.success) {
+          setDaftarProdi(result.data);
+        }
       } catch (error) {
         console.error("Gagal load prodi:", error);
       }
@@ -97,7 +101,7 @@ export default function TambahDosen() {
             <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
               <Hash size={14} className="text-[#800000]" /> NIP
             </label>
-            <input required value={form.nidn} onChange={e => setForm({ ...form, nidn: e.target.value.replace(/\D/g, "") })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm focus:bg-white border-2 border-transparent focus:border-red-100 transition-all" placeholder="0210..." />
+            <input required value={form.nip} onChange={e => setForm({ ...form, nip: e.target.value.replace(/\D/g, "") })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm focus:bg-white border-2 border-transparent focus:border-red-100 transition-all" placeholder="0210..." />
           </div>
 
           <div className="space-y-2">
