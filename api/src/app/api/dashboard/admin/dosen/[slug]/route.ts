@@ -1,34 +1,68 @@
-import { PrismaClient, Prisma, JenisKelamin } from "@prisma/client"; 
+import { PrismaClient, JenisKelamin } from "@prisma/client"; // WAJIB ADA
 import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-export const PUT = async (
-  request: NextRequest, 
-  { params }: { params: Promise<{ slug: string }> }
-) => {
-  try {
-    const { slug } = await params; // slug lama (NIP lama)
-    const body = await request.json();
+function corsHeaders(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", "http://localhost:3005");
+  response.headers.set("Access-Control-Allow-Methods", "GET, PUT, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  return response;
+}
 
-    const updated = await prisma.dosen.update({
-      where: { nip: slug }, // Cari berdasarkan NIP lama di URL
-      data: {
-        nip: body.nip, // Update ke NIP baru
-        namaLengkap: body.namaLengkap,
-        email: body.email,
-        jenisKelamin: body.jenisKelamin as JenisKelamin,
-        programStudiId: body.programStudiId,
-        tanggalLahir: body.tanggalLahir ? new Date(body.tanggalLahir) : null,
-      },
+// GET: Mengambil data berdasarkan slug (NIP)
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { slug: string } } 
+) {
+  try {
+    const data = await prisma.dosen.findUnique({
+      where: { nip: params.slug },
+      include: { programStudi: true }
     });
-    
-    return NextResponse.json({ success: true, data: updated });
-  } catch (error: unknown) {
-    let message = "Gagal update data";
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2002') message = "NIP atau Email sudah digunakan dosen lain!";
-    }
-    return NextResponse.json({ success: false, message }, { status: 500 });
+
+    if (!data) return corsHeaders(NextResponse.json({ success: false, message: "Dosen tidak ditemukan" }, { status: 404 }));
+    return corsHeaders(NextResponse.json({ success: true, data }));
+  } catch (error) {
+    return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
   }
-};
+}
+
+// PUT: Update data dosen & user
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { slug: string } }
+) {
+  try {
+    const body = await req.json();
+
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedDosen = await tx.dosen.update({
+        where: { nip: params.slug },
+        data: {
+          namaLengkap: body.namaLengkap,
+          jenisKelamin: body.jenisKelamin as JenisKelamin, // Cast agar tidak merah
+          email: body.email,
+          programStudiId: body.programStudiId,
+          tanggalLahir: body.tanggalLahir ? new Date(body.tanggalLahir) : null,
+        },
+      });
+
+      await tx.user.update({
+        where: { id: updatedDosen.userId },
+        data: { email: body.email }
+      });
+
+      return updatedDosen;
+    });
+
+    return corsHeaders(NextResponse.json({ success: true, data: result }));
+  } catch (error) {
+    console.error("Update Error:", error);
+    return corsHeaders(NextResponse.json({ success: false, message: "Gagal update data" }, { status: 500 }));
+  }
+}
+
+export async function OPTIONS() {
+  return corsHeaders(new NextResponse(null, { status: 204 }));
+}
