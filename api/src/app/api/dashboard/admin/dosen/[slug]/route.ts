@@ -1,4 +1,4 @@
-import { PrismaClient, JenisKelamin } from "@prisma/client"; // WAJIB ADA
+import { PrismaClient, JenisKelamin } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
@@ -10,7 +10,6 @@ function corsHeaders(response: NextResponse) {
   return response;
 }
 
-// GET: Mengambil data berdasarkan slug (NIP)
 export async function GET(
   req: NextRequest,
   { params }: { params: { slug: string } } 
@@ -20,15 +19,13 @@ export async function GET(
       where: { nip: params.slug },
       include: { programStudi: true }
     });
-
     if (!data) return corsHeaders(NextResponse.json({ success: false, message: "Dosen tidak ditemukan" }, { status: 404 }));
     return corsHeaders(NextResponse.json({ success: true, data }));
-  } catch (error) {
+  } catch (error: unknown) {
     return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
   }
 }
 
-// PUT: Update data dosen & user
 export async function PUT(
   req: NextRequest,
   { params }: { params: { slug: string } }
@@ -37,17 +34,25 @@ export async function PUT(
     const body = await req.json();
 
     const result = await prisma.$transaction(async (tx) => {
+      // 1. Update data Dosen sesuai Schema Prisma
       const updatedDosen = await tx.dosen.update({
         where: { nip: params.slug },
         data: {
           namaLengkap: body.namaLengkap,
-          jenisKelamin: body.jenisKelamin as JenisKelamin, // Cast agar tidak merah
-          email: body.email,
-          programStudiId: body.programStudiId,
+          nidn: body.nidn,
+          jenisKelamin: body.jenisKelamin as JenisKelamin,
+          tempatLahir: body.tempatLahir,
           tanggalLahir: body.tanggalLahir ? new Date(body.tanggalLahir) : null,
+          alamat: body.alamat,
+          noTelepon: body.noTelepon,
+          email: body.email,
+          pendidikan: body.pendidikan,
+          jabatan: body.jabatan,
+          programStudiId: body.programStudiId,
         },
       });
 
+      // 2. Update Email di Tabel User (Sinkronisasi)
       await tx.user.update({
         where: { id: updatedDosen.userId },
         data: { email: body.email }
@@ -57,9 +62,9 @@ export async function PUT(
     });
 
     return corsHeaders(NextResponse.json({ success: true, data: result }));
-  } catch (error) {
-    console.error("Update Error:", error);
-    return corsHeaders(NextResponse.json({ success: false, message: "Gagal update data" }, { status: 500 }));
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "Gagal update data";
+    return corsHeaders(NextResponse.json({ success: false, message: errorMsg }, { status: 500 }));
   }
 }
 
