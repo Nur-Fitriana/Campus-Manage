@@ -2,28 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Save, ArrowLeft, User, IdCard, GraduationCap, MapPin, Phone, Briefcase, Mail, Calendar } from "lucide-react";
+import { Save, ArrowLeft, User, IdCard, MapPin, Phone, Briefcase, Mail, Calendar, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
 export default function EditDosenPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug;
+  const slug = params.slug; // Slug awal (NIP lama) untuk pencarian API
 
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [form, setForm] = useState({
     nip: "",
-    nidn: "",
     namaLengkap: "",
     email: "",
-    jenisKelamin: "",
     tempatLahir: "",
     tanggalLahir: "",
     alamat: "",
     noTelepon: "",
-    pendidikan: "",
-    jabatan: "",
-    programStudiId: ""
+    jabatan: ""
   });
 
   useEffect(() => {
@@ -31,24 +29,25 @@ export default function EditDosenPage() {
       try {
         const res = await fetch(`http://localhost:3004/api/dashboard/admin/dosen/${slug}`);
         const json = await res.json();
+        
         if (json.success) {
           const d = json.data;
+          // Data lama langsung dimasukkan ke state agar muncul di input
           setForm({
-            ...d,
-            // Format tanggal agar cocok dengan input type="date"
-            tanggalLahir: d.tanggalLahir ? d.tanggalLahir.split("T")[0] : "",
-            nidn: d.nidn || "",
-            pendidikan: d.pendidikan || "",
-            jabatan: d.jabatan || "",
+            nip: d.nip || "",
+            namaLengkap: d.namaLengkap || "",
+            email: d.email || "",
             tempatLahir: d.tempatLahir || "",
+            tanggalLahir: d.tanggalLahir ? d.tanggalLahir.split("T")[0] : "",
             alamat: d.alamat || "",
-            noTelepon: d.noTelepon || ""
+            noTelepon: d.noTelepon || "",
+            jabatan: d.jabatan || ""
           });
         }
-      } catch (err) {
-        console.error("Gagal mengambil data:", err);
-      } finally {
-        setLoading(false);
+      } catch (err) { 
+        console.error(err); 
+      } finally { 
+        setLoading(false); 
       }
     };
     if (slug) loadDosen();
@@ -56,169 +55,126 @@ export default function EditDosenPage() {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const yakin = confirm("Apakah Anda yakin ingin menyimpan perubahan data ini?");
-    if (!yakin) return;
-
+    setIsSubmitting(true);
+    
     try {
       const res = await fetch(`http://localhost:3004/api/dashboard/admin/dosen/${slug}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        body: JSON.stringify(form) // Mengirim form (termasuk NIP yang mungkin sudah diubah)
       });
       const result = await res.json();
       if (result.success) {
-        alert("✅ Data Dosen Berhasil Diperbarui!");
+        alert("✅ Data Berhasil Diperbarui!");
         router.push("/dashboard/admin/dosen");
-      } else {
-        alert("❌ Gagal: " + result.message);
+        router.refresh();
       }
-    } catch (err) {
-      alert("❌ Gagal koneksi ke server");
+    } catch (err) { 
+      alert("❌ Gagal update"); 
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (loading) return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="text-center font-black text-gray-300 animate-bounce tracking-tighter">MENGAMBIL DATA...</div>
-    </div>
-  );
+  if (loading) return <div className="p-10 font-black text-[#800000] italic">MEMUAT DATA...</div>;
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <Link href="/dashboard/admin/dosen" className="flex items-center gap-2 mb-6 text-gray-400 hover:text-[#800000] transition-colors font-bold text-xs">
-        <ArrowLeft size={16} /> KEMBALI KE DAFTAR
-      </Link>
-      
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-[#800000] uppercase italic tracking-tighter">Edit Profil Pengajar</h1>
-        <p className="text-gray-400 text-xs mt-1 font-medium italic">Pastikan NIP dan NIDN sesuai dengan data PDDIKTI.</p>
-      </div>
-
-      <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-10 rounded-[40px] shadow-2xl shadow-gray-200/50 border border-gray-100">
+    <div className="min-h-screen bg-[#f8f9fa] pt-4 px-6">
+      <div className="max-w-4xl mx-auto bg-white rounded-[2rem] shadow-xl border border-white p-6 md:p-8">
         
-        {/* Kolom Kiri: Identitas Utama */}
-        <div className="space-y-6">
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
-              <IdCard size={12}/> NIP (Identitas Utama)
-            </label>
+        <Link href="/dashboard/admin/dosen" className="inline-flex items-center gap-2 mb-4 text-gray-400 hover:text-[#800000] font-bold text-[9px] uppercase tracking-widest transition-all">
+          <ArrowLeft size={12} /> Kembali ke Daftar
+        </Link>
+
+        <div className="mb-6">
+          <h1 className="text-2xl font-black italic uppercase text-[#800000] tracking-tighter leading-none">
+            Edit Profile Dosen
+          </h1>
+          <div className="h-1 w-10 bg-[#800000] mt-2 rounded-full"></div>
+        </div>
+
+        <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          
+          {/* NIP - Sekarang Bisa Diedit */}
+          <div className="space-y-1">
+            <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><IdCard size={10} className="text-[#800000]"/> Nomor Induk Pegawai (NIP)</label>
             <input 
-              className="bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none text-sm focus:border-[#800000] focus:bg-white transition-all shadow-sm" 
-              placeholder="Contoh: 198801012015011001"
               value={form.nip} 
-              onChange={e => setForm({...form, nip: e.target.value})} 
+              onChange={e => setForm({...form, nip: e.target.value})}
+              placeholder="Masukkan NIP Baru"
+              className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none" 
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
-              <User size={12}/> Nama Lengkap & Gelar
-            </label>
+          {/* Nama Lengkap - Sudah Terisi Nama Lama */}
+          <div className="space-y-1">
+            <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><User size={10} className="text-[#800000]"/> Nama Lengkap & Gelar</label>
             <input 
-              className="bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none text-sm focus:border-[#800000] focus:bg-white transition-all shadow-sm" 
-              placeholder="Contoh: Dr. Ahmad Subarjo, S.Kom., M.T."
               value={form.namaLengkap} 
               onChange={e => setForm({...form, namaLengkap: e.target.value})} 
+              placeholder="Contoh: Dr. Ridwan Mahenra, M.Cs."
+              className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none" 
+              required 
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
-                <Briefcase size={12}/> Jabatan
-              </label>
-              <input 
-                className="bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none text-sm focus:border-[#800000]" 
-                placeholder="Lektor Kepala"
+          {/* Jabatan */}
+          <div className="space-y-1">
+            <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><Briefcase size={10} className="text-[#800000]"/> Jabatan</label>
+            <div className="relative">
+              <select 
                 value={form.jabatan} 
                 onChange={e => setForm({...form, jabatan: e.target.value})} 
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
-                <GraduationCap size={12}/> Pendidikan
-              </label>
-              <input 
-                className="bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none text-sm focus:border-[#800000]" 
-                placeholder="S3 - Doktor"
-                value={form.pendidikan} 
-                onChange={e => setForm({...form, pendidikan: e.target.value})} 
-              />
+                className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs appearance-none outline-none cursor-pointer"
+              >
+                <option value="">Pilih Jabatan</option>
+                <option value="Tenaga Pengajar">Tenaga Pengajar</option>
+                <option value="Asisten Ahli">Asisten Ahli</option>
+                <option value="Lektor">Lektor</option>
+                <option value="Lektor Kepala">Lektor Kepala</option>
+                <option value="Guru Besar">Guru Besar</option>
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
-              <Mail size={12}/> Email Instansi
-            </label>
+          {/* Email */}
+          <div className="space-y-1">
+            <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><Mail size={10} className="text-[#800000]"/> Email Instansi</label>
             <input 
-              type="email"
-              className="bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none text-sm focus:border-[#800000]" 
-              placeholder="dosen@teknokrat.ac.id"
+              type="email" 
               value={form.email} 
               onChange={e => setForm({...form, email: e.target.value})} 
-            />
-          </div>
-        </div>
-
-        {/* Kolom Ranan: Data Pribadi */}
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
-                <MapPin size={12}/> Tempat Lahir
-              </label>
-              <input 
-                className="bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none text-sm focus:border-[#800000]" 
-                placeholder="Bandar Lampung"
-                value={form.tempatLahir} 
-                onChange={e => setForm({...form, tempatLahir: e.target.value})} 
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
-                <Calendar size={12}/> Tgl Lahir
-              </label>
-              <input 
-                type="date"
-                className="bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none text-sm focus:border-[#800000]" 
-                value={form.tanggalLahir} 
-                onChange={e => setForm({...form, tanggalLahir: e.target.value})} 
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
-              <Phone size={12}/> WhatsApp / Telepon
-            </label>
-            <input 
-              className="bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none text-sm focus:border-[#800000]" 
-              placeholder="0812xxxx"
-              value={form.noTelepon} 
-              onChange={e => setForm({...form, noTelepon: e.target.value})} 
+              placeholder="dosen@teknokrat.ac.id"
+              className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none" 
+              required 
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
-              <MapPin size={12}/> Alamat Lengkap
-            </label>
+          {/* Alamat */}
+          <div className="space-y-1 md:col-span-2">
+            <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><MapPin size={10} className="text-[#800000]"/> Alamat Rumah</label>
             <textarea 
-              className="bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none text-sm focus:border-[#800000] min-h-[105px] resize-none" 
-              placeholder="Jl. H. ZA. Pagar Alam No.9..."
+              rows={2} 
               value={form.alamat} 
               onChange={e => setForm({...form, alamat: e.target.value})} 
+              placeholder="Jl. H. ZA. Pagar Alam No.9..."
+              className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none resize-none" 
             />
           </div>
-        </div>
 
-        <div className="md:col-span-2 pt-4">
-          <button type="submit" className="group w-full bg-[#800000] hover:bg-black text-white py-5 rounded-[24px] font-black uppercase text-xs tracking-[0.2em] transition-all duration-500 flex items-center justify-center gap-3 shadow-xl shadow-red-900/20">
-            <Save size={18} className="group-hover:rotate-12 transition-transform"/> Simpan Perubahan Data
-          </button>
-        </div>
-      </form>
+          {/* Tombol Simpan */}
+          <div className="md:col-span-2 pt-2">
+            <button 
+              type="submit" 
+              disabled={isSubmitting} 
+              className="w-full bg-[#800000] hover:bg-black text-white py-3.5 rounded-xl font-black uppercase text-[9px] tracking-[0.4em] transition-all flex items-center justify-center gap-3"
+            >
+              <Save size={16} /> {isSubmitting ? "MEMPROSES..." : "SIMPAN PERUBAHAN"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
