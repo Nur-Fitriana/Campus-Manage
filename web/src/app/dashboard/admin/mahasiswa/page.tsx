@@ -126,9 +126,9 @@ export default function DataMahasiswa() {
       <div className="col-span-4">
         <div className="bg-white border border-gray-100 rounded-[2rem] p-8 text-center shadow-sm">
           <UserCircle size={80} className="mx-auto text-gray-200 mb-4" />
-          <h3 className="font-black text-[#800000] uppercase italic">System Admin</h3>
+          <h3 className="font-black text-[#800000] uppercase italic">Admin Sistem</h3>
           <p className="text-[9px] text-gray-400 font-bold mb-8 uppercase tracking-widest">
-            Administrator Portal
+          Portal Administrasi
           </p>
 
           <Link
