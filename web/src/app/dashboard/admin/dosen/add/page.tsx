@@ -87,7 +87,7 @@ export default function TambahDosen() {
       <div className="max-w-5xl mx-auto bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 p-8 md:p-12">
 
         <Link href="/dashboard/admin/dosen" className="inline-flex items-center gap-2 mb-8 text-gray-400 hover:text-[#800000] font-bold text-xs uppercase tracking-widest transition-all">
-          <ArrowLeft size={16} /> Kembali
+          <ArrowLeft size={16} /> Kembali Ke Daftar 
         </Link>
 
         <div className="mb-10 text-center md:text-left">
