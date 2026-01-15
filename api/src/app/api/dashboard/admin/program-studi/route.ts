@@ -10,7 +10,7 @@ function corsHeaders(res: NextResponse) {
   return res;
 }
 
-// AMBIL SEMUA DATA (Mencegah success: false di browser)
+// GET: Ambil semua data prodi untuk list
 export async function GET() {
   try {
     const data = await prisma.programStudi.findMany({
@@ -22,19 +22,27 @@ export async function GET() {
   }
 }
 
-// TAMBAH DATA BARU (POST)
+// POST: Tambah data prodi baru
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
+    // Validasi data wajib sesuai Schema Prisma
     const newProdi = await prisma.programStudi.create({
       data: {
         nama: body.nama,
         kode: body.kode,
+        jenjang: body.jenjang || "S1", // Default jika kosong
+        fakultas: body.fakultas || "TEKNIK", // Default jika kosong
       },
     });
+
     return corsHeaders(NextResponse.json({ success: true, data: newProdi }));
-  } catch (error) {
-    return corsHeaders(NextResponse.json({ success: false, message: "Kode Prodi sudah ada!" }, { status: 400 }));
+  } catch (error: any) {
+    console.error("Error Simpan:", error.message);
+    return corsHeaders(
+      NextResponse.json({ success: false, message: "Kode sudah ada atau data tidak lengkap" }, { status: 400 })
+    );
   }
 }
 
