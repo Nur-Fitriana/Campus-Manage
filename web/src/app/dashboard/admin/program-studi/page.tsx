@@ -1,9 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, UserCircle, Home, Database, BookOpen, RefreshCw } from "lucide-react";
+import { Plus, UserCircle, Home, Database, BookOpen, RefreshCw, Edit, Trash2 } from "lucide-react";
 
-// Definisikan interface agar tidak menggunakan 'any'
 interface Prodi {
   id: string;
   nama: string;
@@ -16,23 +15,41 @@ export default function DataProdi() {
   const [list, setList] = useState<Prodi[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Fungsi Fetch Data
+  const fetchData = async () => {
+    try {
+      const res = await fetch("http://localhost:3004/api/dashboard/admin/program-studi");
+      const json = await res.json();
+      if (json.data) setList(json.data);
+      else if (json.prodi) setList(json.prodi);
+    } catch (err) {
+      console.error("Gagal ambil data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Pastikan port backend 3004 aktif
-    fetch("http://localhost:3004/api/dashboard/admin/program-studi")
-      .then(res => res.json())
-      .then(json => { 
-        if (json.data) {
-          setList(json.data);
-        } else if (json.prodi) {
-          setList(json.prodi);
-        }
-        setLoading(false); 
-      })
-      .catch(err => {
-        console.error("Gagal ambil data:", err);
-        setLoading(false);
-      });
+    fetchData();
   }, []);
+
+  // Fungsi Hapus Data
+  const handleDelete = async (id: string, nama: string) => {
+    if (confirm(`Yakin ingin menghapus Prodi ${nama}?`)) {
+      try {
+        const res = await fetch(`http://localhost:3004/api/dashboard/admin/program-studi?id=${id}`, {
+          method: "DELETE",
+        });
+        const json = await res.json();
+        if (json.success) {
+          alert("✅ Data berhasil dihapus");
+          fetchData(); // Refresh list tanpa reload halaman
+        }
+      } catch (err) {
+        alert("❌ Gagal menghapus data");
+      }
+    }
+  };
 
   return (
     <div className="grid grid-cols-12 gap-6 animate-in slide-in-from-bottom-4 duration-500">
@@ -46,7 +63,6 @@ export default function DataProdi() {
               <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Struktur Akademik Kampus</p>
             </div>
             
-            {/* PERBAIKAN: Menggunakan Link agar tombol bisa diklik */}
             <Link 
               href="/dashboard/admin/program-studi/add" 
               className="bg-[#800000] text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase shadow-md flex items-center gap-2 hover:bg-black transition-all active:scale-95"
@@ -62,7 +78,26 @@ export default function DataProdi() {
               </div>
             ) : list.length > 0 ? (
               list.map((p) => (
-                <div key={p.id || p.kode} className="p-6 bg-gray-50 border border-gray-100 rounded-[1.5rem] group hover:border-[#800000] transition-all">
+                <div key={p.id || p.kode} className="p-6 bg-gray-50 border border-gray-100 rounded-[1.5rem] group hover:border-[#800000] transition-all relative">
+                  
+                  {/* TOMBOL EDIT & HAPUS (Muncul saat Hover) */}
+                  <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                    <Link 
+                      href={`/dashboard/admin/program-studi/edit/${p.kode}`}
+                      className="p-2 bg-white text-amber-600 rounded-lg shadow-sm hover:bg-amber-600 hover:text-white transition-all"
+                      title="Edit"
+                    >
+                      <Edit size={14} />
+                    </Link>
+                    <button 
+                      onClick={() => handleDelete(p.id, p.nama)}
+                      className="p-2 bg-white text-red-600 rounded-lg shadow-sm hover:bg-red-600 hover:text-white transition-all"
+                      title="Hapus"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+
                   <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-[#800000] mb-3 shadow-sm group-hover:bg-[#800000] group-hover:text-white transition-all">
                     <BookOpen size={20} />
                   </div>
