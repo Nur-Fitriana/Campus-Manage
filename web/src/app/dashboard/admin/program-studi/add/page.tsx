@@ -22,14 +22,14 @@ export default function AddProdi() {
 
       const json = await res.json();
       if (json.success) {
-        alert("✅ Program Studi Berhasil Ditambahkan!");
+        alert("✅ Berhasil: Program Studi disimpan!");
         router.push("/dashboard/admin/program-studi");
         router.refresh();
       } else {
         alert("❌ Gagal: " + json.message);
       }
     } catch (err) {
-      alert("❌ Gagal terhubung ke server backend 3004");
+      alert("❌ Gagal: Cek apakah Backend port 3004 sudah jalan?");
     } finally {
       setLoading(false);
     }
@@ -44,45 +44,38 @@ export default function AddProdi() {
 
         <div className="mb-10 border-b pb-6">
           <h2 className="text-[#800000] font-black text-3xl italic uppercase tracking-tighter flex items-center gap-3">
-            <Database size={30} /> Tambah Program Studi
+            <Database size={30} /> Input Prodi Baru
           </h2>
-          <p className="text-gray-400 font-bold text-[9px] uppercase tracking-[0.3em] mt-2">Input Struktur Akademik Baru</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Nama Program Studi</label>
-            <div className="relative">
-              <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-              <input 
-                required
-                className="w-full pl-12 pr-4 py-4 bg-gray-50 rounded-2xl text-xs font-bold outline-none border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all"
-                placeholder="Contoh: TEKNIK INFORMATIKA"
-                value={form.nama}
-                onChange={e => setForm({...form, nama: e.target.value.toUpperCase()})}
-              />
-            </div>
+            <label className="text-[10px] font-black uppercase text-gray-400">Nama Prodi</label>
+            <input 
+              required
+              className="w-full px-5 py-4 bg-gray-50 rounded-2xl text-xs font-bold outline-none border-2 border-transparent focus:border-[#800000]/20 transition-all"
+              placeholder="CONTOH: TEKNIK INFORMATIKA"
+              value={form.nama}
+              onChange={e => setForm({...form, nama: e.target.value.toUpperCase()})}
+            />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Kode Prodi</label>
-            <div className="relative">
-              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-              <input 
-                required
-                className="w-full pl-12 pr-4 py-4 bg-gray-50 rounded-2xl text-xs font-bold outline-none border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all"
-                placeholder="Contoh: INF-01"
-                value={form.kode}
-                onChange={e => setForm({...form, kode: e.target.value.toUpperCase()})}
-              />
-            </div>
+            <label className="text-[10px] font-black uppercase text-gray-400">Kode Prodi</label>
+            <input 
+              required
+              className="w-full px-5 py-4 bg-gray-50 rounded-2xl text-xs font-bold outline-none border-2 border-transparent focus:border-[#800000]/20 transition-all"
+              placeholder="CONTOH: INF-001"
+              value={form.kode}
+              onChange={e => setForm({...form, kode: e.target.value.toUpperCase()})}
+            />
           </div>
 
           <button 
             disabled={loading}
-            className="w-full bg-[#800000] text-white py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-lg hover:bg-black transition-all flex items-center justify-center gap-3 mt-10 disabled:bg-gray-300"
+            className="w-full bg-[#800000] text-white py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-lg hover:bg-black transition-all flex items-center justify-center gap-3 disabled:bg-gray-300"
           >
-            <Save size={20} /> {loading ? "Menyimpan..." : "Simpan Data Prodi"}
+            <Save size={20} /> {loading ? "Menyimpan..." : "Simpan Prodi"}
           </button>
         </form>
       </div>
