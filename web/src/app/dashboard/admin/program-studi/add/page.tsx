@@ -69,7 +69,7 @@ export default function AddProdi() {
           </select>
           {/* Input Fakultas yang bebas diisi */}
           <input 
-            placeholder="INPUT NAMA FAKULTAS (MISAL: FAKULTAS SASTRA)" 
+            placeholder="INPUT NAMA FAKULTAS" 
             required 
             className="w-full p-4 bg-gray-50 rounded-xl font-bold border-2 border-transparent focus:border-[#800000]/10 outline-none" 
             onChange={e => setForm({...form, fakultas: e.target.value.toUpperCase()})} 
