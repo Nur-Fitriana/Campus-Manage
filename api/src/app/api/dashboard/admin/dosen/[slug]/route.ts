@@ -1,4 +1,4 @@
-import { PrismaClient, JenisKelamin, Prisma } from "@prisma/client";
+import { PrismaClient, JenisKelamin } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
@@ -10,14 +10,14 @@ function corsHeaders(res: NextResponse) {
   return res;
 }
 
-export async function OPTIONS() {
-  return corsHeaders(new NextResponse(null, { status: 204 }));
-}
-
 export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await params;
-    const data = await prisma.dosen.findUnique({ where: { nip: slug } });
+    
+    const data = await prisma.dosen.findUnique({ 
+      where: { nip: slug },
+      include: { programStudi: true } // WAJIB: agar nama prodi muncul
+    });
     
     if (!data) {
       return corsHeaders(NextResponse.json({ success: false, message: "Dosen tidak ditemukan" }, { status: 404 }));
@@ -50,4 +50,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug
   } catch (error) {
     return corsHeaders(NextResponse.json({ success: false, message: "Gagal Update" }, { status: 500 }));
   }
+}
+
+export async function OPTIONS() {
+  return corsHeaders(new NextResponse(null, { status: 204 }));
 }
