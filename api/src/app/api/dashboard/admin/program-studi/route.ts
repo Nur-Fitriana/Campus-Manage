@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-// Definisikan Interface untuk Body Request agar tidak pakai 'any'
+// Interface untuk keamanan tipe data (No Any)
 interface ProdiBody {
   oldKode?: string;
   nama: string;
@@ -19,63 +19,52 @@ function corsHeaders(res: NextResponse) {
   return res;
 }
 
-// GET: Ambil semua data prodi
 export async function GET() {
   try {
-    const data = await prisma.programStudi.findMany({
-      orderBy: { nama: "asc" }
-    });
+    const data = await prisma.programStudi.findMany({ orderBy: { nama: "asc" } });
     return corsHeaders(NextResponse.json({ success: true, data }));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Gagal memuat DB";
-    return corsHeaders(NextResponse.json({ success: false, message }, { status: 500 }));
+    return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
   }
 }
 
-// POST: Tambah data prodi baru
 export async function POST(req: NextRequest) {
   try {
     const body: ProdiBody = await req.json();
-
     const newProdi = await prisma.programStudi.create({
-      data: {
-        nama: body.nama,
-        kode: body.kode,
-        jenjang: body.jenjang || "S1",
-        fakultas: body.fakultas || "TEKNIK",
-      },
+      data: { nama: body.nama, kode: body.kode, jenjang: body.jenjang, fakultas: body.fakultas },
     });
-
     return corsHeaders(NextResponse.json({ success: true, data: newProdi }));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Data tidak lengkap";
-    return corsHeaders(NextResponse.json({ success: false, message }, { status: 400 }));
+    return corsHeaders(NextResponse.json({ success: false }, { status: 400 }));
   }
 }
 
-// PUT: Update data berdasarkan oldKode (Slug)
+// --- FUNGSI EDIT (PUT) ---
 export async function PUT(req: NextRequest) {
   try {
     const body: ProdiBody = await req.json();
-
-    if (!body.oldKode) {
-      return corsHeaders(NextResponse.json({ success: false, message: "oldKode diperlukan" }, { status: 400 }));
-    }
-
-    const updatedProdi = await prisma.programStudi.update({
-      where: { kode: body.oldKode },
-      data: {
-        nama: body.nama,
-        kode: body.kode,
-        jenjang: body.jenjang,
-        fakultas: body.fakultas,
-      },
+    const updated = await prisma.programStudi.update({
+      where: { kode: body.oldKode }, // Mencari data berdasarkan kode lama (slug)
+      data: { nama: body.nama, kode: body.kode, jenjang: body.jenjang, fakultas: body.fakultas },
     });
-
-    return corsHeaders(NextResponse.json({ success: true, data: updatedProdi }));
+    return corsHeaders(NextResponse.json({ success: true, data: updated }));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Gagal update data";
-    return corsHeaders(NextResponse.json({ success: false, message }, { status: 400 }));
+    return corsHeaders(NextResponse.json({ success: false, message: "Gagal Update" }, { status: 400 }));
+  }
+}
+
+// --- FUNGSI HAPUS (DELETE) ---
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id"); // Mengambil ID dari URL ?id=xxx
+    if (!id) return corsHeaders(NextResponse.json({ success: false }, { status: 400 }));
+
+    await prisma.programStudi.delete({ where: { id } });
+    return corsHeaders(NextResponse.json({ success: true }));
+  } catch (error) {
+    return corsHeaders(NextResponse.json({ success: false }, { status: 400 }));
   }
 }
 
