@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Save, ArrowLeft, User, IdCard, Mail, MapPin, Phone, ChevronDown, RefreshCw } from "lucide-react";
+import { Save, ArrowLeft, User, IdCard, Mail, MapPin, Phone, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
 export default function EditMahasiswaPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug; // NPM lama dari URL
+  const slug = params.slug; // NPM dari URL
 
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,30 +23,26 @@ export default function EditMahasiswaPage() {
     status: ""
   });
 
-  // FUNGSI LOAD DATA: Mengambil data lama
+  // FUNGSI AUTO-FILL: Mengambil data lama
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`http://localhost:3004/api/dashboard/admin/mahasiswa`, {
+        // Tambahkan cache: "no-store" agar loading tidak gantung/lama
+        const res = await fetch(`http://localhost:3004/api/dashboard/admin/mahasiswa/${slug}`, {
           cache: "no-store" 
         });
         const json = await res.json();
 
         if (json.success) {
-          // Cari data yang NPM-nya sesuai dengan slug di URL
-          const m = json.mahasiswa?.find((item: any) => item.npm === slug) || 
-                    json.data?.find((item: any) => item.npm === slug);
-          
-          if (m) {
-            setForm({
-              npm: m.npm || "",
-              namaLengkap: m.namaLengkap || "",
-              email: m.email || "",
-              noTelepon: m.noTelepon || "",
-              alamat: m.alamat || "",
-              status: m.status || "AKTIF"
-            });
-          }
+          const m = json.mahasiswa || json.data;
+          setForm({
+            npm: m.npm || "",
+            namaLengkap: m.namaLengkap || "",
+            email: m.email || "",
+            noTelepon: m.noTelepon || "",
+            alamat: m.alamat || "",
+            status: m.status || "AKTIF"
+          });
         }
       } catch (e) {
         console.error("Gagal load data:", e);
@@ -57,16 +53,14 @@ export default function EditMahasiswaPage() {
     if (slug) fetchData();
   }, [slug]);
 
-  // FUNGSI UPDATE: Menyimpan perubahan
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch(`http://localhost:3004/api/dashboard/admin/mahasiswa`, {
+      const res = await fetch(`http://localhost:3004/api/dashboard/admin/mahasiswa/${slug}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        // Mengirim data form PLUS oldNpm sebagai identitas untuk 'where' di Prisma
-        body: JSON.stringify({ ...form, oldNpm: slug })
+        body: JSON.stringify(form)
       });
       
       const result = await res.json();
@@ -74,8 +68,6 @@ export default function EditMahasiswaPage() {
         alert("✅ Data Mahasiswa Berhasil Diperbarui!");
         router.push("/dashboard/admin/mahasiswa");
         router.refresh();
-      } else {
-        alert("❌ Gagal update: " + result.message);
       }
     } catch (err) { 
       alert("Gagal update data. Cek koneksi backend 3004."); 
@@ -86,8 +78,7 @@ export default function EditMahasiswaPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
-      <div className="p-10 font-black text-[#800000] italic animate-pulse text-xl flex flex-col items-center gap-3">
-        <RefreshCw className="animate-spin" />
+      <div className="p-10 font-black text-[#800000] italic animate-pulse text-xl">
         MEMUAT DATA MAHASISWA...
       </div>
     </div>
@@ -113,7 +104,7 @@ export default function EditMahasiswaPage() {
 
         <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
 
-          {/* NPM - Disetel agar tidak bisa diedit karena Primary Key */}
+          {/* NPM */}
           <div className="space-y-1">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><IdCard size={10} className="text-[#800000]" /> NPM</label>
             <input
@@ -128,7 +119,7 @@ export default function EditMahasiswaPage() {
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><User size={10} className="text-[#800000]" /> Nama Lengkap</label>
             <input
               value={form.namaLengkap}
-              onChange={e => setForm({ ...form, namaLengkap: e.target.value.toUpperCase() })}
+              onChange={e => setForm({ ...form, namaLengkap: e.target.value })}
               className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none"
               required
             />
@@ -160,7 +151,7 @@ export default function EditMahasiswaPage() {
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><MapPin size={10} className="text-[#800000]" /> Alamat</label>
             <textarea
               value={form.alamat}
-              onChange={e => setForm({ ...form, alamat: e.target.value.toUpperCase() })}
+              onChange={e => setForm({ ...form, alamat: e.target.value })}
               className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none h-20 resize-none"
             />
           </div>
@@ -185,11 +176,7 @@ export default function EditMahasiswaPage() {
 
           {/* Submit */}
           <div className="md:col-span-2 pt-2">
-            <button 
-              type="submit" 
-              disabled={isSubmitting} 
-              className="w-full bg-[#800000] hover:bg-black text-white py-3.5 rounded-xl font-[900] uppercase text-[9px] tracking-[0.4em] transition-all flex items-center justify-center gap-3 disabled:bg-gray-400"
-            >
+            <button type="submit" disabled={isSubmitting} className="w-full bg-[#800000] hover:bg-black text-white py-3.5 rounded-xl font-[900] uppercase text-[9px] tracking-[0.4em] transition-all flex items-center justify-center gap-3 disabled:bg-gray-400">
               <Save size={16} /> {isSubmitting ? "MENYIMPAN..." : "SIMPAN PERUBAHAN"}
             </button>
           </div>
