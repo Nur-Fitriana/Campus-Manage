@@ -140,7 +140,7 @@ export default function DataDosen() {
         <div className="bg-white border border-gray-100 rounded-[2rem] p-8 text-center shadow-sm sticky top-10">
           <UserCircle size={80} className="mx-auto text-gray-200 mb-4" />
           <h3 className="font-black text-[#800000] uppercase italic text-lg leading-none">Admin Sistem</h3>
-          <p className="text-[10px] text-gray-400 font-bold mt-2 tracking-widest uppercase">Teknokrat Campus</p>
+          <p className="text-[10px] text-gray-400 font-bold mt-2 tracking-widest uppercase">Portal Administrasi</p>
           <Link href="/dashboard/admin" className="mt-8 w-full flex items-center justify-center gap-2 py-4 border-2 border-[#800000] text-[#800000] rounded-xl font-black text-[10px] uppercase hover:bg-[#800000] hover:text-white transition-all shadow-sm">
             <Home size={14} /> Beranda
           </Link>
