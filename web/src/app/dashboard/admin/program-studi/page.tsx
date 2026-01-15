@@ -1,22 +1,30 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, UserCircle, Home, Database, BookOpen, Layers, RefreshCw } from "lucide-react";
+import { Plus, UserCircle, Home, Database, BookOpen, RefreshCw } from "lucide-react";
+
+// Definisikan interface agar tidak menggunakan 'any'
+interface Prodi {
+  id: string;
+  nama: string;
+  kode: string;
+  jenjang: string;
+  fakultas: string;
+}
 
 export default function DataProdi() {
-  const [list, setList] = useState([]);
+  const [list, setList] = useState<Prodi[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Pastikan port backend 3004 aktif
     fetch("http://localhost:3004/api/dashboard/admin/program-studi")
       .then(res => res.json())
       .then(json => { 
-        console.log("Cek Data API Prodi:", json); // Lihat di F12 (Console) browser
-        // Jika API mengirim { data: [...] } maka ganti json.prodi jadi json.data
-        if(json.prodi) {
-          setList(json.prodi);
-        } else if (json.data) {
+        if (json.data) {
           setList(json.data);
+        } else if (json.prodi) {
+          setList(json.prodi);
         }
         setLoading(false); 
       })
@@ -37,9 +45,14 @@ export default function DataProdi() {
               </h2>
               <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Struktur Akademik Kampus</p>
             </div>
-            <button className="bg-[#800000] text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase shadow-md flex items-center gap-2">
+            
+            {/* PERBAIKAN: Menggunakan Link agar tombol bisa diklik */}
+            <Link 
+              href="/dashboard/admin/program-studi/add" 
+              className="bg-[#800000] text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase shadow-md flex items-center gap-2 hover:bg-black transition-all active:scale-95"
+            >
               <Plus size={14} strokeWidth={3} /> Tambah Prodi
-            </button>
+            </Link>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -47,15 +60,22 @@ export default function DataProdi() {
               <div className="col-span-2 text-center p-20 font-black text-[#800000] animate-pulse italic uppercase flex flex-col items-center gap-2">
                 <RefreshCw className="animate-spin" /> Menyinkronkan Data...
               </div>
-            ) : list?.map((p) => (
-              <div key={p.id || p.kode} className="p-6 bg-gray-50 border border-gray-100 rounded-[1.5rem] group hover:border-[#800000] transition-all">
-                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-[#800000] mb-3 shadow-sm group-hover:bg-[#800000] group-hover:text-white transition-all">
-                  <BookOpen size={20} />
+            ) : list.length > 0 ? (
+              list.map((p) => (
+                <div key={p.id || p.kode} className="p-6 bg-gray-50 border border-gray-100 rounded-[1.5rem] group hover:border-[#800000] transition-all">
+                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-[#800000] mb-3 shadow-sm group-hover:bg-[#800000] group-hover:text-white transition-all">
+                    <BookOpen size={20} />
+                  </div>
+                  <h4 className="font-black text-gray-800 uppercase italic text-sm">{p.nama}</h4>
+                  <p className="text-[9px] text-[#800000] font-black uppercase mt-1">Kode: {p.kode}</p>
+                  <p className="text-[8px] text-gray-400 font-bold uppercase">{p.jenjang} - {p.fakultas}</p>
                 </div>
-                <h4 className="font-black text-gray-800 uppercase italic text-sm">{p.nama}</h4>
-                <p className="text-[9px] text-[#800000] font-black uppercase mt-1">Kode: {p.kode}</p>
+              ))
+            ) : (
+              <div className="col-span-2 text-center p-10 text-gray-400 font-bold uppercase text-[10px]">
+                Belum ada data program studi.
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
