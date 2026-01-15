@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-// Interface untuk keamanan tipe data (No Any)
 interface ProdiBody {
   oldKode?: string;
   nama: string;
@@ -40,13 +39,17 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// --- FUNGSI EDIT (PUT) ---
 export async function PUT(req: NextRequest) {
   try {
     const body: ProdiBody = await req.json();
     const updated = await prisma.programStudi.update({
-      where: { kode: body.oldKode }, // Mencari data berdasarkan kode lama (slug)
-      data: { nama: body.nama, kode: body.kode, jenjang: body.jenjang, fakultas: body.fakultas },
+      where: { kode: body.oldKode },
+      data: { 
+        nama: body.nama, 
+        kode: body.kode, 
+        jenjang: body.jenjang, 
+        fakultas: body.fakultas 
+      },
     });
     return corsHeaders(NextResponse.json({ success: true, data: updated }));
   } catch (error) {
@@ -54,11 +57,10 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// --- FUNGSI HAPUS (DELETE) ---
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id"); // Mengambil ID dari URL ?id=xxx
+    const id = searchParams.get("id");
     if (!id) return corsHeaders(NextResponse.json({ success: false }, { status: 400 }));
 
     await prisma.programStudi.delete({ where: { id } });
