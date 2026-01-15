@@ -3,31 +3,37 @@ import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-// VIEW ALL (GET)
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "http://localhost:3005",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function GET() {
   try {
     const data = await prisma.mahasiswa.findMany({
       orderBy: { npm: 'asc' },
       include: { programStudi: true }
     });
-    return NextResponse.json({ success: true, mahasiswa: data });
+    return NextResponse.json({ success: true, mahasiswa: data }, { headers: corsHeaders });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "DB Error" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "DB Error" }, { status: 500, headers: corsHeaders });
   }
 }
 
-// ADD NEW (POST)
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    
-    // Transaksi: Buat User dulu baru Mahasiswa
     const result = await prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({
         data: {
           username: body.npm,
           email: body.email,
-          password: "password123", // Default
+          password: "password123",
           role: "MAHASISWA",
         }
       });
@@ -49,9 +55,8 @@ export async function POST(req: NextRequest) {
         }
       });
     });
-
-    return NextResponse.json({ success: true, data: result });
+    return NextResponse.json({ success: true, data: result }, { headers: corsHeaders });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Gagal Simpan" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Gagal Simpan" }, { status: 500, headers: corsHeaders });
   }
 }
