@@ -1,43 +1,36 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Save, ArrowLeft, User, IdCard, Mail, MapPin, Phone, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
-export default function EditMahasiswaPage({ params }: { params: Promise<{ slug: string }> }) {
-  // 1. UNWRAP PARAMS (Wajib untuk Next.js 15/16)
-  const resolvedParams = use(params);
-  const slug = resolvedParams.slug; 
-  
+export default function EditMahasiswaPage() {
+  const params = useParams();
   const router = useRouter();
+  const slug = params.slug; // NPM dari URL
+
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // State Mahasiswa dengan nilai default agar tidak undefined saat render awal
+  // State Mahasiswa
   const [form, setForm] = useState({
     npm: "",
     namaLengkap: "",
     email: "",
     noTelepon: "",
     alamat: "",
-    status: "AKTIF"
+    status: ""
   });
 
   // FUNGSI AUTO-FILL: Mengambil data lama
   useEffect(() => {
     const fetchData = async () => {
-      // 2. GUARD CLAUSE: Jangan fetch jika slug belum siap atau string "undefined"
-      if (!slug || slug === "undefined") return;
-
       try {
-        setLoading(true);
+        // Tambahkan cache: "no-store" agar loading tidak gantung/lama
         const res = await fetch(`http://localhost:3004/api/dashboard/admin/mahasiswa/${slug}`, {
           cache: "no-store" 
         });
-        
-        if (!res.ok) throw new Error("Gagal mengambil data");
-        
         const json = await res.json();
 
         if (json.success) {
@@ -52,19 +45,16 @@ export default function EditMahasiswaPage({ params }: { params: Promise<{ slug: 
           });
         }
       } catch (e) {
-        console.error("API Error:", e);
+        console.error("Gagal load data:", e);
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchData();
+    if (slug) fetchData();
   }, [slug]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!slug) return;
-    
     setIsSubmitting(true);
     try {
       const res = await fetch(`http://localhost:3004/api/dashboard/admin/mahasiswa/${slug}`, {
@@ -86,7 +76,6 @@ export default function EditMahasiswaPage({ params }: { params: Promise<{ slug: 
     }
   };
 
-  // Tampilan loading yang bersih
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
       <div className="p-10 font-black text-[#800000] italic animate-pulse text-xl">
@@ -96,11 +85,11 @@ export default function EditMahasiswaPage({ params }: { params: Promise<{ slug: 
   );
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] pt-4 px-6 pb-20">
-      <div className="max-w-4xl mx-auto bg-white rounded-[2rem] shadow-xl border border-white p-6 md:p-8">
-        
+    <div className="min-h-screen bg-[#f8f9fa] pt-4 px-6">
+      <div className="max-w-4xl mx-auto bg-white rounded-[2rem] shadow-xl border border-white p-6 md:p-8 text-left">
+
         <Link href="/dashboard/admin/mahasiswa" className="inline-flex items-center gap-2 mb-4 text-gray-400 hover:text-[#800000] font-bold text-[9px] uppercase tracking-widest transition-all">
-          <ArrowLeft size={12} /> Kembali ke List
+          <ArrowLeft size={16} /> Kembali Ke Daftar
         </Link>
 
         <div className="mb-6">
@@ -114,35 +103,68 @@ export default function EditMahasiswaPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+
+          {/* NPM */}
           <div className="space-y-1">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><IdCard size={10} className="text-[#800000]" /> NPM</label>
-            <input value={form.npm} disabled className="w-full p-2.5 bg-gray-100 rounded-xl border-2 border-transparent font-bold text-xs opacity-60 cursor-not-allowed" />
+            <input
+              value={form.npm}
+              disabled
+              className="w-full p-2.5 bg-gray-100 rounded-xl border-2 border-transparent font-bold text-xs outline-none opacity-60 cursor-not-allowed"
+            />
           </div>
 
+          {/* Nama */}
           <div className="space-y-1">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><User size={10} className="text-[#800000]" /> Nama Lengkap</label>
-            <input value={form.namaLengkap} onChange={e => setForm({ ...form, namaLengkap: e.target.value })} className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none" required />
+            <input
+              value={form.namaLengkap}
+              onChange={e => setForm({ ...form, namaLengkap: e.target.value })}
+              className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none"
+              required
+            />
           </div>
 
+          {/* Email */}
           <div className="space-y-1">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><Mail size={10} className="text-[#800000]" /> Email</label>
-            <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none" />
+            <input
+              type="email"
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+              className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none"
+            />
           </div>
 
+          {/* No Telepon */}
           <div className="space-y-1">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><Phone size={10} className="text-[#800000]" /> No. Telepon</label>
-            <input value={form.noTelepon} onChange={e => setForm({ ...form, noTelepon: e.target.value })} className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none" />
+            <input
+              value={form.noTelepon}
+              onChange={e => setForm({ ...form, noTelepon: e.target.value })}
+              className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none"
+            />
           </div>
 
+          {/* Alamat */}
           <div className="space-y-1 md:col-span-2">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><MapPin size={10} className="text-[#800000]" /> Alamat</label>
-            <textarea value={form.alamat} onChange={e => setForm({ ...form, alamat: e.target.value })} className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none h-20 resize-none" />
+            <textarea
+              value={form.alamat}
+              onChange={e => setForm({ ...form, alamat: e.target.value })}
+              className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none h-20 resize-none"
+            />
           </div>
 
+          {/* Status */}
           <div className="space-y-1 md:col-span-2">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1">Status Mahasiswa</label>
             <div className="relative">
-              <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs appearance-none outline-none cursor-pointer">
+              <select
+                value={form.status}
+                onChange={e => setForm({ ...form, status: e.target.value })}
+                className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs appearance-none outline-none cursor-pointer"
+              >
                 <option value="AKTIF">AKTIF</option>
                 <option value="CUTI">CUTI</option>
                 <option value="LULUS">LULUS</option>
@@ -152,6 +174,7 @@ export default function EditMahasiswaPage({ params }: { params: Promise<{ slug: 
             </div>
           </div>
 
+          {/* Submit */}
           <div className="md:col-span-2 pt-2">
             <button type="submit" disabled={isSubmitting} className="w-full bg-[#800000] hover:bg-black text-white py-3.5 rounded-xl font-[900] uppercase text-[9px] tracking-[0.4em] transition-all flex items-center justify-center gap-3 disabled:bg-gray-400">
               <Save size={16} /> {isSubmitting ? "MENYIMPAN..." : "SIMPAN PERUBAHAN"}
