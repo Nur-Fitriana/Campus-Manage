@@ -41,7 +41,7 @@ export default function AddProdi() {
     <div className="min-h-screen bg-[#f8f9fa] p-10">
       <div className="max-w-xl mx-auto bg-white rounded-[2.5rem] shadow-xl p-10 border">
         <Link href="/dashboard/admin/program-studi" className="flex items-center gap-2 mb-8 text-gray-400 font-black text-[10px] uppercase tracking-widest">
-          <ArrowLeft size={14} /> Kembali Ke Daftar
+          <ArrowLeft size={14} /> Kembali Ke
         </Link>
 
         <h2 className="text-[#800000] font-black text-2xl italic uppercase mb-10 flex items-center gap-2">
