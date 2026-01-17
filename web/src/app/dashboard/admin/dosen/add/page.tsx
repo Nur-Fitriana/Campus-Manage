@@ -23,14 +23,9 @@ export default function TambahDosen() {
   useEffect(() => {
     const fetchProdi = async () => {
       try {
-        // Tambahkan alamat lengkap port 3004
         const res = await fetch("http://localhost:3004/api/dashboard/admin/program-studi"); 
         const result = await res.json();
-        
-        // Pastikan struktur result.data sesuai dengan yang dikirim backend
-        if (result.success) {
-          setDaftarProdi(result.data);
-        }
+        if (result.success) setDaftarProdi(result.data);
       } catch (error) {
         console.error("Gagal load prodi:", error);
       }
@@ -38,45 +33,34 @@ export default function TambahDosen() {
     fetchProdi();
   }, []);
 
-  // --- FUNGSI HANDLE SUBMIT (Utama) ---
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault(); // Menghentikan refresh halaman
+    e.preventDefault();
     setIsSubmitting(true);
 
-    try {
-      // Validasi: Pastikan data penting tidak kosong
-      if (!form.programStudiId || !form.tanggalLahir) {
-        alert("❌ Program Studi dan Tanggal Lahir wajib diisi!");
-        setIsSubmitting(false);
-        return;
-      }
+    if (!form.programStudiId || !form.jenisKelamin || !form.tanggalLahir) {
+      alert("❌ Lengkapi data wajib: Prodi, Gender, & Tanggal Lahir");
+      setIsSubmitting(false);
+      return;
+    }
 
-      // PROSES KIRIM KE BACKEND PORT 3004
+    try {
       const res = await fetch("http://localhost:3004/api/dashboard/admin/dosen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          // Mengubah tanggal ke format ISO (Wajib untuk Prisma)
-          tanggalLahir: new Date(form.tanggalLahir).toISOString(),
-          userId: "1" // Sesuaikan dengan sistem login kamu
-        })
+        body: JSON.stringify(form) // Kirim data mentah, konversi Date dilakukan di backend
       });
 
       const result = await res.json();
 
       if (res.ok && result.success) {
-        alert("✅ BERHASIL: Data telah masuk ke database!");
+        alert("✅ BERHASIL: Dosen & Akun User telah dibuat!");
         router.push("/dashboard/admin/dosen");
         router.refresh();
       } else {
-        // Tampilkan pesan error dari backend
-        alert("❌ GAGAL: " + (result.message || "Cek isian atau koneksi database"));
-        console.log("Error Detail:", result);
+        alert("❌ GAGAL: " + result.message);
       }
     } catch (error) {
-      alert("❌ ERROR: Pastikan server di port 3004 sudah dinyalakan!");
-      console.error(error);
+      alert("❌ ERROR: Server tidak merespon (Port 3004)");
     } finally {
       setIsSubmitting(false);
     }
@@ -96,28 +80,21 @@ export default function TambahDosen() {
         </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
-
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
-              <Hash size={14} className="text-[#800000]" /> NIP
-            </label>
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1"><Hash size={14} className="text-[#800000]" /> NIP</label>
             <input required value={form.nip} onChange={e => setForm({ ...form, nip: e.target.value.replace(/\D/g, "") })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm focus:bg-white border-2 border-transparent focus:border-red-100 transition-all" placeholder="0210..." />
           </div>
 
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
-              <User size={14} className="text-[#800000]" /> Nama Lengkap
-            </label>
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1"><User size={14} className="text-[#800000]" /> Nama Lengkap</label>
             <input required value={form.namaLengkap} onChange={e => setForm({ ...form, namaLengkap: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm focus:bg-white border-2 border-transparent focus:border-red-100 transition-all" placeholder="Nama & Gelar..." />
           </div>
 
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
-              <Users size={14} className="text-[#800000]" /> Jenis Kelamin
-            </label>
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1"><Users size={14} className="text-[#800000]" /> Jenis Kelamin</label>
             <div className="relative">
               <select required value={form.jenisKelamin} onChange={e => setForm({ ...form, jenisKelamin: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm appearance-none cursor-pointer shadow-sm">
-                <option value="" disabled hidden>Pilih Jenis Kelamin</option>
+                <option value="">Pilih Jenis Kelamin</option>
                 <option value="LAKI_LAKI">Laki-laki</option>
                 <option value="PEREMPUAN">Perempuan</option>
               </select>
@@ -126,16 +103,12 @@ export default function TambahDosen() {
           </div>
 
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
-              <Calendar size={14} className="text-[#800000]" /> Tanggal Lahir
-            </label>
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1"><Calendar size={14} className="text-[#800000]" /> Tanggal Lahir</label>
             <input required type="date" value={form.tanggalLahir} onChange={e => setForm({ ...form, tanggalLahir: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm focus:bg-white border-2 border-transparent focus:border-red-100 transition-all" />
           </div>
 
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
-              <BookOpen size={14} className="text-[#800000]" /> Program Studi
-            </label>
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1"><BookOpen size={14} className="text-[#800000]" /> Program Studi</label>
             <div className="relative">
               <select required value={form.programStudiId} onChange={e => setForm({ ...form, programStudiId: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm appearance-none cursor-pointer shadow-sm">
                 <option value="">-- Pilih Jurusan --</option>
@@ -146,10 +119,13 @@ export default function TambahDosen() {
           </div>
 
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
-              <Mail size={14} className="text-[#800000]" /> Email Resmi
-            </label>
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1"><Mail size={14} className="text-[#800000]" /> Email Resmi</label>
             <input required type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm" placeholder="dosen@teknokrat.ac.id" />
+          </div>
+
+          <div className="md:col-span-2 space-y-2">
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1"><MapPin size={14} className="text-[#800000]" /> Alamat Domisili</label>
+            <textarea value={form.alamat} onChange={e => setForm({ ...form, alamat: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm h-24 resize-none" placeholder="Alamat Lengkap..." />
           </div>
 
           <div className="md:col-span-2 pt-6">
