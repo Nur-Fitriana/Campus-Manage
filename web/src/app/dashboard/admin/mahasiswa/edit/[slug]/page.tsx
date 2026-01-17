@@ -8,12 +8,11 @@ import Link from "next/link";
 export default function EditMahasiswaPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug; // NPM dari URL
+  const slug = params.slug; 
 
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // State Mahasiswa
   const [form, setForm] = useState({
     npm: "",
     namaLengkap: "",
@@ -27,13 +26,15 @@ export default function EditMahasiswaPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Tambahkan cache: "no-store" agar loading tidak gantung/lama
-        const res = await fetch(`http://localhost:3004/api/dashboard/admin/mahasiswa/${slug}`, {
+        // PERBAIKAN: Gunakan relative path untuk menghindari error Port 3004
+        const res = await fetch(`/api/dashboard/admin/mahasiswa/${slug}`, {
           cache: "no-store" 
         });
+        
         const json = await res.json();
 
         if (json.success) {
+          // Sesuaikan dengan struktur JSON yang dikembalikan API kamu
           const m = json.mahasiswa || json.data;
           setForm({
             npm: m.npm || "",
@@ -57,8 +58,8 @@ export default function EditMahasiswaPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      // PERBAIKAN: Gunakan relative path
       const res = await fetch(`/api/dashboard/admin/mahasiswa/${slug}`, {
-      cache: "no-store",
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
@@ -69,9 +70,11 @@ export default function EditMahasiswaPage() {
         alert("✅ Data Mahasiswa Berhasil Diperbarui!");
         router.push("/dashboard/admin/mahasiswa");
         router.refresh();
+      } else {
+        alert("Gagal update: " + (result.error || "Terjadi kesalahan"));
       }
     } catch (err) { 
-      alert("Gagal update data. Cek koneksi backend 3004."); 
+      alert("Gagal update data. Pastikan API Route sudah benar."); 
     } finally { 
       setIsSubmitting(false); 
     }
@@ -104,8 +107,6 @@ export default function EditMahasiswaPage() {
         </div>
 
         <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-
-          {/* NPM */}
           <div className="space-y-1">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><IdCard size={10} className="text-[#800000]" /> NPM</label>
             <input
@@ -115,7 +116,6 @@ export default function EditMahasiswaPage() {
             />
           </div>
 
-          {/* Nama */}
           <div className="space-y-1">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><User size={10} className="text-[#800000]" /> Nama Lengkap</label>
             <input
@@ -126,7 +126,6 @@ export default function EditMahasiswaPage() {
             />
           </div>
 
-          {/* Email */}
           <div className="space-y-1">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><Mail size={10} className="text-[#800000]" /> Email</label>
             <input
@@ -137,7 +136,6 @@ export default function EditMahasiswaPage() {
             />
           </div>
 
-          {/* No Telepon */}
           <div className="space-y-1">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><Phone size={10} className="text-[#800000]" /> No. Telepon</label>
             <input
@@ -147,7 +145,6 @@ export default function EditMahasiswaPage() {
             />
           </div>
 
-          {/* Alamat */}
           <div className="space-y-1 md:col-span-2">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><MapPin size={10} className="text-[#800000]" /> Alamat</label>
             <textarea
@@ -157,7 +154,6 @@ export default function EditMahasiswaPage() {
             />
           </div>
 
-          {/* Status */}
           <div className="space-y-1 md:col-span-2">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1">Status Mahasiswa</label>
             <div className="relative">
@@ -175,7 +171,6 @@ export default function EditMahasiswaPage() {
             </div>
           </div>
 
-          {/* Submit */}
           <div className="md:col-span-2 pt-2">
             <button type="submit" disabled={isSubmitting} className="w-full bg-[#800000] hover:bg-black text-white py-3.5 rounded-xl font-[900] uppercase text-[9px] tracking-[0.4em] transition-all flex items-center justify-center gap-3 disabled:bg-gray-400">
               <Save size={16} /> {isSubmitting ? "MENYIMPAN..." : "SIMPAN PERUBAHAN"}
