@@ -28,8 +28,8 @@ export default function EditMahasiswaPage() {
       try {
         // PERBAIKAN: Gunakan relative path untuk menghindari error Port 3004
         const res = await fetch(`/api/dashboard/admin/mahasiswa/${slug}`, {
-          cache: "no-store" 
-        });
+  cache: "no-store" 
+});
         
         const json = await res.json();
 
