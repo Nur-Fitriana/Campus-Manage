@@ -4,28 +4,23 @@ import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 
-export const dynamic = 'force-dynamic';
-
 export async function GET(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Sesi tidak ditemukan" }, { status: 401 });
+    const token = authHeader?.split(" ")[1];
 
-    const token = authHeader.split(" ")[1];
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "rahasia_campus_manage123") as { id: string };
 
+    // Kode Prisma diletakkan DI SINI (Server Side)
     const profile = await prisma.mahasiswa.findUnique({
-      where: { userId: decoded.id },
-      include: { 
-        programStudi: true // Hanya sertakan yang sudah pasti ada di DB
-      }
+      where: { userId: decoded.id }, 
+      include: { programStudi: true }
     });
-
-    if (!profile) return NextResponse.json({ error: "Data mahasiswa tidak ditemukan" }, { status: 404 });
 
     return NextResponse.json(profile);
   } catch (error) {
-    console.error("DEBUG ERROR:", error);
-    return NextResponse.json({ error: "Gagal memverifikasi sesi" }, { status: 401 });
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
