@@ -3,41 +3,60 @@ import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "http://localhost:3005",
-  "Access-Control-Allow-Methods": "GET, PUT, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
+// Helper CORS yang disamakan dengan contoh Dosen
+function corsHeaders(res: NextResponse) {
+  res.headers.set("Access-Control-Allow-Origin", "http://localhost:3005");
+  res.headers.set("Access-Control-Allow-Methods", "GET, PUT, OPTIONS");
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  return res;
+}
 
-export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
+// GET: Mengambil satu data mahasiswa (Auto-fill)
+export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
-    const data = await prisma.mahasiswa.findUnique({
-      where: { npm: params.slug }
-    });
-    if (!data) return NextResponse.json({ success: false }, { status: 404, headers: corsHeaders });
+    const { slug } = await params; // Menunggu params sesuai standar terbaru Next.js
     
-    // Harus kirim objek 'mahasiswa' agar terbaca oleh setForm di page.tsx
-    return NextResponse.json({ success: true, mahasiswa: data }, { headers: corsHeaders });
+    const data = await prisma.mahasiswa.findUnique({ 
+      where: { npm: slug },
+      include: { programStudi: true } // Menampilkan data prodi agar mirip contoh dosen
+    });
+    
+    if (!data) {
+      return corsHeaders(NextResponse.json({ success: false, message: "Mahasiswa tidak ditemukan" }, { status: 404 }));
+    }
+
+    // Mengembalikan key 'mahasiswa' agar terbaca oleh kode Frontend kamu
+    return corsHeaders(NextResponse.json({ success: true, mahasiswa: data }));
   } catch (error) {
-    return NextResponse.json({ success: false }, { status: 500, headers: corsHeaders });
+    return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { slug: string } }) {
+// PUT: Mengupdate data mahasiswa
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
+    const { slug } = await params;
     const body = await req.json();
+
     const updated = await prisma.mahasiswa.update({
-      where: { npm: params.slug },
+      where: { npm: slug },
       data: {
         namaLengkap: body.namaLengkap,
         email: body.email,
         noTelepon: body.noTelepon,
         alamat: body.alamat,
         status: body.status,
-      }
+        // Tambahkan field lain jika perlu, pastikan sesuai dengan schema.prisma
+      },
     });
-    return NextResponse.json({ success: true, data: updated }, { headers: corsHeaders });
+
+    return corsHeaders(NextResponse.json({ success: true, data: updated }));
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Gagal Update" }, { status: 400, headers: corsHeaders });
+    console.error(error);
+    return corsHeaders(NextResponse.json({ success: false, message: "Gagal Update" }, { status: 500 }));
   }
+}
+
+export async function OPTIONS() {
+  return corsHeaders(new NextResponse(null, { status: 204 }));
 }
