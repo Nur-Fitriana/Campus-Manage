@@ -13,7 +13,7 @@ function corsHeaders(res: NextResponse) {
 // Handler untuk mengambil SEMUA data mahasiswa (Tampilan Tabel)
 export async function GET() {
   try {
-    const allDosen = await prisma.dosen.findMany({
+    const allmahasiswa = await prisma.mahasiswa.findMany({
       orderBy: {
         namaLengkap: "asc", // Mengurutkan alfabetis
       },
@@ -23,7 +23,7 @@ export async function GET() {
     return corsHeaders(
       NextResponse.json({ 
         success: true, 
-        data: allDosen 
+        data: allmahasiswa
       })
     );
   } catch (error) {
