@@ -10,51 +10,37 @@ function corsHeaders(res: NextResponse) {
   return res;
 }
 
-// GET: Sudah benar menggunakan slug
 export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
-    const { slug } = await params; 
+    const { slug } = await params; // Harus 'slug' sesuai nama folder
     const data = await prisma.mahasiswa.findUnique({ 
-      where: { npm: slug }, 
+      where: { npm: slug }, // Mencari field 'npm' menggunakan nilai dari 'slug'
       include: { programStudi: true }
     });
     
-    if (!data) {
-      return corsHeaders(NextResponse.json({ success: false, message: "Data tidak ditemukan" }, { status: 404 }));
-    }
-
+    if (!data) return corsHeaders(NextResponse.json({ success: false }, { status: 404 }));
     return corsHeaders(NextResponse.json({ success: true, mahasiswa: data }));
   } catch (error) {
     return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
   }
 }
 
-// PUT: Menyimpan perubahan
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
-    try {
-      // 1. Ambil 'slug' dari params (bukan npm)
-      const { slug } = await params; 
-      const body = await req.json();
-  
-      const updated = await prisma.mahasiswa.update({
-        // 2. Cari berdasarkan NPM di database menggunakan nilai dari 'slug'
-        where: { npm: slug }, 
-        data: {
-          namaLengkap: body.namaLengkap,
-          email: body.email,
-          noTelepon: body.noTelepon,
-          alamat: body.alamat,
-          status: body.status,
-        },
-      });
-  
-      return corsHeaders(NextResponse.json({ success: true, data: updated }));
-    } catch (error) {
-      console.error("Update Error:", error);
-      return corsHeaders(NextResponse.json({ success: false, message: "Gagal Update" }, { status: 500 }));
-    }
+  try {
+    const { slug } = await params; // Samakan dengan nama folder [slug]
+    const body = await req.json();
+    const updated = await prisma.mahasiswa.update({
+      where: { npm: slug }, 
+      data: {
+        namaLengkap: body.namaLengkap,
+        email: body.email,
+        noTelepon: body.noTelepon,
+        alamat: body.alamat,
+        status: body.status,
+      },
+    });
+    return corsHeaders(NextResponse.json({ success: true, data: updated }));
+  } catch (error) {
+    return corsHeaders(NextResponse.json({ success: false, message: "Gagal Update" }, { status: 500 }));
   }
-
-export async function OPTIONS() {
-  return corsHeaders(new NextResponse(null, { status: 204 }));
 }
