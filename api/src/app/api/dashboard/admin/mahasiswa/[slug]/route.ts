@@ -29,28 +29,31 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
   }
 }
 
-// PUT: PERBAIKAN DISINI (Ganti npm menjadi slug)
+// PUT: Menyimpan perubahan
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
-  try {
-    const { slug } = await params; // Harus 'slug' karena nama foldernya [slug]
-    const body = await req.json();
-
-    const updated = await prisma.mahasiswa.update({
-      where: { npm: slug }, // Gunakan isi variabel slug untuk mencari NPM di database
-      data: {
-        namaLengkap: body.namaLengkap,
-        email: body.email,
-        noTelepon: body.noTelepon,
-        alamat: body.alamat,
-        status: body.status,
-      },
-    });
-
-    return corsHeaders(NextResponse.json({ success: true, data: updated }));
-  } catch (error) {
-    return corsHeaders(NextResponse.json({ success: false, message: "Gagal Update" }, { status: 500 }));
+    try {
+      // 1. Ambil 'slug' dari params (bukan npm)
+      const { slug } = await params; 
+      const body = await req.json();
+  
+      const updated = await prisma.mahasiswa.update({
+        // 2. Cari berdasarkan NPM di database menggunakan nilai dari 'slug'
+        where: { npm: slug }, 
+        data: {
+          namaLengkap: body.namaLengkap,
+          email: body.email,
+          noTelepon: body.noTelepon,
+          alamat: body.alamat,
+          status: body.status,
+        },
+      });
+  
+      return corsHeaders(NextResponse.json({ success: true, data: updated }));
+    } catch (error) {
+      console.error("Update Error:", error);
+      return corsHeaders(NextResponse.json({ success: false, message: "Gagal Update" }, { status: 500 }));
+    }
   }
-}
 
 export async function OPTIONS() {
   return corsHeaders(new NextResponse(null, { status: 204 }));
