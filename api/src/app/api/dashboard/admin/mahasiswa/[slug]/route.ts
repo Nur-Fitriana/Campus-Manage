@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-// Fungsi helper CORS disamakan persis dengan contoh dosen
 function corsHeaders(res: NextResponse) {
   res.headers.set("Access-Control-Allow-Origin", "http://localhost:3005");
   res.headers.set("Access-Control-Allow-Methods", "GET, PUT, OPTIONS");
@@ -11,20 +10,20 @@ function corsHeaders(res: NextResponse) {
   return res;
 }
 
+// FUNGSI GET (Inilah yang memperbaiki 404 dan SyntaxError)
 export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
-    const { slug } = await params; // Await params sesuai standar terbaru
+    const { slug } = await params;
     
     const data = await prisma.mahasiswa.findUnique({ 
-      where: { npm: slug },
-      include: { programStudi: true } // WAJIB: agar nama prodi muncul
+      where: { npm: slug } 
     });
     
     if (!data) {
-      return corsHeaders(NextResponse.json({ success: false, message: "Mahasiswa tidak ditemukan" }, { status: 404 }));
+      return corsHeaders(NextResponse.json({ success: false, message: "NPM tidak ditemukan" }, { status: 404 }));
     }
 
-    // Mengembalikan key 'mahasiswa' agar sinkron dengan Frontend kamu
+    // Mengembalikan objek 'mahasiswa' agar form di frontend otomatis terisi
     return corsHeaders(NextResponse.json({ success: true, mahasiswa: data }));
   } catch (error) {
     return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
@@ -44,13 +43,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug
         noTelepon: body.noTelepon,
         alamat: body.alamat,
         status: body.status,
-        // Tambahkan field lain di sini sesuai schema prisma kamu jika diperlukan
       },
     });
 
     return corsHeaders(NextResponse.json({ success: true, data: updated }));
   } catch (error) {
-    return corsHeaders(NextResponse.json({ success: false, message: "Gagal Update" }, { status: 500 }));
+    return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
   }
 }
 
