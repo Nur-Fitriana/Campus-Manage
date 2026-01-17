@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  User, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Calendar, 
-  Hash, 
-  GraduationCap, 
-  BookOpen 
-} from "lucide-react";
+import { User, MapPin, Phone, Mail, Calendar, Hash, GraduationCap, BookOpen } from "lucide-react";
+
+// 1. Definisikan struktur data agar TypeScript tidak bingung
+interface UserData {
+  nama: string;
+  npm: string;
+  prodi: string;
+  fakultas: string;
+  email: string;
+  telepon: string;
+  alamat: string;
+}
 
 function InfoItem({ label, value, icon, isStatus = false }: any) {
   return (
@@ -28,8 +30,8 @@ function InfoItem({ label, value, icon, isStatus = false }: any) {
 }
 
 export default function BiodataPage() {
-  // 1. Definisikan state dengan nilai awal yang jelas
-  const [user, setUser] = useState({
+  // 2. Terapkan interface pada useState
+  const [user, setUser] = useState<UserData>({
     nama: "-",
     npm: "-",
     prodi: "S1 Informatika",
@@ -40,22 +42,21 @@ export default function BiodataPage() {
   });
 
   useEffect(() => {
-    // 2. Ambil data dari localStorage di dalam useEffect (Sisi Client)
     const savedName = localStorage.getItem("userName");
     const savedNPM = localStorage.getItem("userNPM");
     const savedEmail = localStorage.getItem("userEmail");
 
-    // 3. Update state hanya satu kali saat mount
+    // 3. Update state dengan semua kunci yang diwajibkan oleh interface
     setUser({
       nama: savedName || "-",
       npm: savedNPM || "-",
       prodi: "S1 Informatika",
       fakultas: "Teknik dan Ilmu Komputer",
       email: savedEmail || "-",
-      telepon: "-",
-      alamat: "Alamat belum dilengkapi dalam database.",
+      telepon: "-", // Pastikan ini ada
+      alamat: "Alamat belum dilengkapi dalam database.", // Pastikan ini ada
     });
-  }, []); // Kosongkan dependency array agar tidak looping
+  }, []);
 
   return (
     <div className="p-4 md:p-8 animate-in fade-in duration-700">
@@ -69,7 +70,6 @@ export default function BiodataPage() {
 
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* FOTO PROFILE */}
             <div className="lg:col-span-3 flex flex-col items-center">
               <div className="w-40 h-52 bg-gray-50 border-2 border-gray-100 rounded-sm flex flex-col items-center justify-center text-[10px] text-gray-300 font-bold uppercase p-4 text-center shadow-inner">
                 <User size={40} className="mb-2 opacity-10" />
@@ -78,7 +78,6 @@ export default function BiodataPage() {
               <p className="mt-4 text-[10px] text-gray-400 italic">Format: Pas Foto Formal</p>
             </div>
 
-            {/* DETAIL DATA */}
             <div className="lg:col-span-9 space-y-6">
               <div>
                 <h3 className="text-[11px] font-bold text-gray-400 uppercase border-b border-gray-100 pb-1 mb-4 flex items-center gap-2">
@@ -108,12 +107,6 @@ export default function BiodataPage() {
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="bg-[#fff9e6] p-4 border-t border-[#ffeeba] text-center">
-          <p className="text-[10px] text-[#856404] italic">
-            * Jika terdapat kesalahan data, silakan hubungi bagian Administrasi Akademik (BAAK).
-          </p>
         </div>
       </div>
     </div>
