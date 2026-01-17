@@ -27,7 +27,7 @@ export default function EditMahasiswaPage() {
     const fetchData = async () => {
       try {
         // PERBAIKAN: Gunakan relative path untuk menghindari error Port 3004
-        const res = await fetch(`/dashboard/admin/mahasiswa/${slug}`, {
+        const res = await fetch(`http://localhost:3004/api/dashboard/admin/mahasiswa/${slug}`, {
           cache: "no-store"
         });
 
