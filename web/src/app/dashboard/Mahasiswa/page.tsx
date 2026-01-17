@@ -18,6 +18,47 @@ export default function MahasiswaDashboard() {
   const [userName, setUserName] = useState<string>("");
   const [userNPM, setUserNPM] = useState<string>("");
 
+  // Di dalam MahasiswaDashboard()
+const [activeTab, setActiveTab] = useState<string>("BERANDA");
+
+// Buat fungsi untuk merender konten dinamis
+const renderContent = () => {
+  switch (activeTab) {
+    case "BIODATA":
+      return (
+        <div className="bg-white border border-gray-200 p-6 shadow-sm rounded-sm animate-in fade-in">
+          <h2 className="text-[#0056b3] font-bold text-sm mb-4 border-b pb-2 uppercase">Data Diri Mahasiswa</h2>
+          <div className="grid grid-cols-2 gap-4 text-[11px]">
+            <div className="text-gray-400 font-bold uppercase">Nama Lengkap</div>
+            <div className="text-gray-700">{userName}</div>
+            <div className="text-gray-400 font-bold uppercase">NPM</div>
+            <div className="text-gray-700">{userNPM}</div>
+            <div className="text-gray-400 font-bold uppercase">Fakultas</div>
+            <div className="text-gray-700">Fakultas Teknik dan Ilmu Komputer</div>
+          </div>
+        </div>
+      );
+    case "KRS":
+      return (
+        <div className="bg-white border border-gray-200 p-6 shadow-sm rounded-sm text-center">
+          <p className="text-[11px] italic text-gray-400">Jadwal Pengisian KRS Belum Dibuka.</p>
+        </div>
+      );
+    default:
+      return (
+        <div className="bg-white border border-gray-200 shadow-sm rounded-sm">
+           <div className="bg-[#f8f9fa] px-4 py-2 border-b border-gray-200 text-[#0056b3] font-bold text-[11px] uppercase">
+             Diskusi Terbaru
+           </div>
+           <div className="p-12 text-center text-gray-300 text-[11px] italic">
+             <MessageSquare className="mx-auto mb-2 opacity-20" size={30} />
+             Tidak ada diskusi terbaru.
+           </div>
+        </div>
+      );
+  }
+};
+
   const doLogout = () => {
     localStorage.clear();
     sessionStorage.clear();
