@@ -10,21 +10,23 @@ export async function GET(req: Request) {
     if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
-    // "secret" harus sama persis dengan yang ada di login backend kamu
+    // Pastikan JWT_SECRET di .env kamu sudah benar
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret") as { id: string };
 
+    // Mencari di tabel Mahasiswa berdasarkan userId
     const profile = await prisma.mahasiswa.findUnique({
-      where: { userId: decoded.id }, // Mengambil data berdasarkan userId dari tabel Mahasiswa
+      where: { userId: decoded.id },
       include: {
-        programStudi: true, // Mengambil relasi Program Studi
+        programStudi: true, // Ambil relasi ProgramStudi
+        dosenWali: true      // Ambil relasi Dosen Wali
       }
     });
 
-    if (!profile) return NextResponse.json({ error: "Mahasiswa tidak ditemukan" }, { status: 404 });
+    if (!profile) return NextResponse.json({ error: "Data mahasiswa tidak ditemukan" }, { status: 404 });
 
     return NextResponse.json(profile);
   } catch (error) {
-    console.error("Auth Error:", error);
-    return NextResponse.json({ error: "Sesi tidak valid" }, { status: 401 });
+    console.error("Fetch Profile Error:", error);
+    return NextResponse.json({ error: "Sesi berakhir, silakan login kembali" }, { status: 401 });
   }
 }
