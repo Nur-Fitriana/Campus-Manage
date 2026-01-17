@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-// Pastikan semua icon diimport dengan benar
 import { 
   User, 
   MapPin, 
@@ -13,7 +12,6 @@ import {
   BookOpen 
 } from "lucide-react";
 
-// 1. Komponen Kecil untuk Baris Informasi (Ditaruh di luar agar rapi)
 function InfoItem({ label, value, icon, isStatus = false }: any) {
   return (
     <div className="space-y-1">
@@ -30,35 +28,38 @@ function InfoItem({ label, value, icon, isStatus = false }: any) {
 }
 
 export default function BiodataPage() {
+  // 1. Definisikan state dengan nilai awal yang jelas
   const [user, setUser] = useState({
-    nama: "",
-    npm: "",
+    nama: "-",
+    npm: "-",
     prodi: "S1 Informatika",
     fakultas: "Teknik dan Ilmu Komputer",
-    email: "",
-    telepon: "",
-    alamat: "",
+    email: "-",
+    telepon: "-",
+    alamat: "-",
   });
 
   useEffect(() => {
-    // Ambil data dari localStorage
+    // 2. Ambil data dari localStorage di dalam useEffect (Sisi Client)
     const savedName = localStorage.getItem("userName");
     const savedNPM = localStorage.getItem("userNPM");
     const savedEmail = localStorage.getItem("userEmail");
 
-    setUser((prev) => ({
-      ...prev,
+    // 3. Update state hanya satu kali saat mount
+    setUser({
       nama: savedName || "-",
       npm: savedNPM || "-",
+      prodi: "S1 Informatika",
+      fakultas: "Teknik dan Ilmu Komputer",
       email: savedEmail || "-",
-    }));
-  }, []);
+      telepon: "-",
+      alamat: "Alamat belum dilengkapi dalam database.",
+    });
+  }, []); // Kosongkan dependency array agar tidak looping
 
   return (
     <div className="p-4 md:p-8 animate-in fade-in duration-700">
       <div className="bg-white border border-gray-200 shadow-sm rounded-sm">
-        
-        {/* Header */}
         <div className="bg-[#f8f9fa] px-6 py-3 border-b border-gray-200 flex items-center gap-2">
           <User size={16} className="text-[#800000]" />
           <h2 className="text-[#800000] font-bold text-[12px] uppercase tracking-wider">
@@ -66,11 +67,9 @@ export default function BiodataPage() {
           </h2>
         </div>
 
-        {/* Konten Utama */}
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            {/* Foto Profile */}
+            {/* FOTO PROFILE */}
             <div className="lg:col-span-3 flex flex-col items-center">
               <div className="w-40 h-52 bg-gray-50 border-2 border-gray-100 rounded-sm flex flex-col items-center justify-center text-[10px] text-gray-300 font-bold uppercase p-4 text-center shadow-inner">
                 <User size={40} className="mb-2 opacity-10" />
@@ -79,10 +78,8 @@ export default function BiodataPage() {
               <p className="mt-4 text-[10px] text-gray-400 italic">Format: Pas Foto Formal</p>
             </div>
 
-            {/* Form Detail */}
+            {/* DETAIL DATA */}
             <div className="lg:col-span-9 space-y-6">
-              
-              {/* Seksi Akademik */}
               <div>
                 <h3 className="text-[11px] font-bold text-gray-400 uppercase border-b border-gray-100 pb-1 mb-4 flex items-center gap-2">
                   <GraduationCap size={14} /> Informasi Akademik
@@ -95,7 +92,6 @@ export default function BiodataPage() {
                 </div>
               </div>
 
-              {/* Seksi Pribadi */}
               <div className="pt-4">
                 <h3 className="text-[11px] font-bold text-gray-400 uppercase border-b border-gray-100 pb-1 mb-4 flex items-center gap-2">
                   <User size={14} /> Data Pribadi
@@ -103,19 +99,17 @@ export default function BiodataPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InfoItem label="Nama Lengkap" value={user.nama} />
                   <InfoItem label="Email" value={user.email} icon={<Mail size={12}/>} />
-                  <InfoItem label="No. Telepon" value={user.telepon || "Belum diisi"} icon={<Phone size={12}/>} />
+                  <InfoItem label="No. Telepon" value={user.telepon} icon={<Phone size={12}/>} />
                   <InfoItem label="Tempat, Tanggal Lahir" value="Lampung, 01 Jan 2000" icon={<Calendar size={12}/>} />
                 </div>
                 <div className="mt-4">
-                  <InfoItem label="Alamat Tinggal" value={user.alamat || "Alamat belum dilengkapi dalam database."} icon={<MapPin size={12}/>} />
+                  <InfoItem label="Alamat Tinggal" value={user.alamat} icon={<MapPin size={12}/>} />
                 </div>
               </div>
-
             </div>
           </div>
         </div>
 
-        {/* Footer Note */}
         <div className="bg-[#fff9e6] p-4 border-t border-[#ffeeba] text-center">
           <p className="text-[10px] text-[#856404] italic">
             * Jika terdapat kesalahan data, silakan hubungi bagian Administrasi Akademik (BAAK).
