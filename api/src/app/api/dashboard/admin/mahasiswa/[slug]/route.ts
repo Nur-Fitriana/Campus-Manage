@@ -10,13 +10,12 @@ function corsHeaders(res: NextResponse) {
   return res;
 }
 
-// GET: Mengambil data 1 mahasiswa untuk auto-fill form
+// GET: Sudah benar menggunakan slug
 export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await params; 
-    
     const data = await prisma.mahasiswa.findUnique({ 
-      where: { npm: slug }, // Mencari berdasarkan NPM di database
+      where: { npm: slug }, 
       include: { programStudi: true }
     });
     
@@ -24,21 +23,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
       return corsHeaders(NextResponse.json({ success: false, message: "Data tidak ditemukan" }, { status: 404 }));
     }
 
-    // Mengembalikan key 'mahasiswa' agar terbaca oleh page.tsx Anda
     return corsHeaders(NextResponse.json({ success: true, mahasiswa: data }));
   } catch (error) {
     return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
   }
 }
 
-// PUT: Menyimpan perubahan
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ npm: string }> }) {
+// PUT: PERBAIKAN DISINI (Ganti npm menjadi slug)
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
-    const { npm } = await params;
+    const { slug } = await params; // Harus 'slug' karena nama foldernya [slug]
     const body = await req.json();
 
     const updated = await prisma.mahasiswa.update({
-      where: { npm: npm },
+      where: { npm: slug }, // Gunakan isi variabel slug untuk mencari NPM di database
       data: {
         namaLengkap: body.namaLengkap,
         email: body.email,
