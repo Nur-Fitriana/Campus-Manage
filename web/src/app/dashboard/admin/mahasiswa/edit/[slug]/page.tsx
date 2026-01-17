@@ -22,6 +22,31 @@ export default function EditMahasiswaPage() {
     status: ""
   });
 
+  // Tambahkan di dalam fungsi EditMahasiswaPage
+const [prodis, setProdis] = useState([]);
+const [dosens, setDosens] = useState([]);
+
+// Di dalam useEffect fetchData, tambahkan ini:
+useEffect(() => {
+  const fetchOptions = async () => {
+    try {
+      // Ambil daftar prodi & dosen untuk dropdown
+      const [resP, resD] = await Promise.all([
+        fetch(`http://localhost:3004/api/dashboard/admin/program-studi`),
+        fetch(`http://localhost:3004/api/dashboard/admin/dosen`)
+      ]);
+      const dataP = await resP.json();
+      const dataD = await resD.json();
+      
+      if (dataP.success) setProdis(dataP.data);
+      if (dataD.success) setDosens(dataD.data);
+    } catch (e) {
+      console.error("Gagal ambil opsi:", e);
+    }
+  };
+  fetchOptions();
+}, []);
+
   // FUNGSI AUTO-FILL: Mengambil data lama
   useEffect(() => {
     const fetchData = async () => {
@@ -105,6 +130,8 @@ export default function EditMahasiswaPage() {
             NPM: <span className="text-black">{slug}</span>
           </p>
         </div>
+
+        
 
         <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <div className="space-y-1">
