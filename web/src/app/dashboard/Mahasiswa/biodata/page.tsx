@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 
+// Interface disesuaikan dengan schema.prisma kamu
 interface UserData {
   namaLengkap: string;
   npm: string;
@@ -10,6 +11,9 @@ interface UserData {
   email: string;
   noTelepon: string;
   alamat: string;
+  angkatan: number;
+  ipk: number;
+  status: string;
 }
 
 export default function BiodataPage() {
@@ -18,9 +22,7 @@ export default function BiodataPage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      // Perbaikan: Ambil token satu kali saja (tidak duplikat lagi)
       const token = localStorage.getItem("user_token");
-
       if (!token) {
         setLoading(false);
         return;
@@ -31,21 +33,25 @@ export default function BiodataPage() {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        if (!res.ok) throw new Error("Gagal mengambil data");
+        if (!res.ok) throw new Error();
         
         const data = await res.json();
         
+        // Memasukkan data sesuai field di schema.prisma
         setUser({
-          namaLengkap: data.namaLengkap || "-",
-          npm: data.npm || "-",
+          namaLengkap: data.namaLengkap,
+          npm: data.npm,
           prodi: data.programStudi?.nama || "-",
           fakultas: data.programStudi?.fakultas || "-",
-          email: data.email || "-",
-          noTelepon: data.noTelepon || "-",
-          alamat: data.alamat || "-",
+          email: data.email,
+          noTelepon: data.noTelepon,
+          alamat: data.alamat,
+          angkatan: data.angkatan,
+          ipk: data.ipk,
+          status: data.status,
         });
       } catch (err) {
-        console.error("Gagal ambil data");
+        console.error("Gagal memuat data");
       } finally {
         setLoading(false);
       }
@@ -53,14 +59,12 @@ export default function BiodataPage() {
     fetchProfile();
   }, []);
 
-  if (loading) return <p className="text-center p-10 font-bold">MEMUAT...</p>;
+  if (loading) return <div className="p-10 text-center font-bold text-xs uppercase">Memproses Data...</div>;
   
-  // Tampilan jika data gagal dimuat
   if (!user) return (
-    <div className="flex flex-col items-center justify-center p-20">
-      <p className="text-red-500 font-bold uppercase text-xs tracking-tighter">
-        GAGAL MEMUAT PROFIL. SILAKAN LOGIN ULANG.
-      </p>
+    <div className="p-10 text-center">
+      <p className="text-red-600 font-bold text-xs">DATA TIDAK DITEMUKAN / SESI HABIS</p>
+      <button onClick={() => window.location.href='/login'} className="mt-4 text-xs underline">Login Kembali</button>
     </div>
   );
 
@@ -69,30 +73,29 @@ export default function BiodataPage() {
       <div className="max-w-4xl mx-auto bg-white border border-gray-200 shadow-sm rounded-sm">
         <div className="bg-[#f8f9fa] px-6 py-3 border-b border-gray-200">
           <h2 className="text-[#800000] font-bold text-[12px] uppercase tracking-wider">
-            Biodata Lengkap Mahasiswa
+            Biodata Mahasiswa - {user.npm}
           </h2>
         </div>
-        <div className="p-6">
-          <h1 className="text-xl font-bold text-gray-800 mb-4">{user.namaLengkap}</h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InfoBox label="NPM" value={user.npm} />
-            <InfoBox label="Program Studi" value={user.prodi} />
-            <InfoBox label="Fakultas" value={user.fakultas} />
-            <InfoBox label="Email" value={user.email} />
-            <InfoBox label="No. Telepon" value={user.noTelepon} />
-            <InfoBox label="Alamat" value={user.alamat} />
-          </div>
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <InfoItem label="Nama Lengkap" value={user.namaLengkap} />
+          <InfoItem label="Program Studi" value={user.prodi} />
+          <InfoItem label="Fakultas" value={user.fakultas} />
+          <InfoItem label="Angkatan" value={user.angkatan.toString()} />
+          <InfoItem label="IPK Terakhir" value={user.ipk.toString()} />
+          <InfoItem label="Status Akreditasi" value={user.status} />
+          <InfoItem label="No. Telepon" value={user.noTelepon} />
+          <InfoItem label="Alamat" value={user.alamat} />
         </div>
       </div>
     </div>
   );
 }
 
-function InfoBox({ label, value }: { label: string; value: string }) {
+function InfoItem({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <p className="text-[10px] font-bold text-gray-400 uppercase">{label}</p>
-      <p className="text-sm font-semibold text-gray-700 border-b border-gray-50 pb-1">{value}</p>
+    <div className="border-b border-gray-50 pb-2">
+      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{label}</p>
+      <p className="text-[12px] font-semibold text-gray-700">{value}</p>
     </div>
   );
 }
