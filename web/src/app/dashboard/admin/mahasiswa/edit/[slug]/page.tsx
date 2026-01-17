@@ -202,7 +202,7 @@ export default function EditMahasiswaPage() {
 
           {/* DROP DOWN DOSEN WALI */}
           <div className="space-y-1">
-            <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><Users size={10} className="text-[#800000]" /> Dosen </label>
+            <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><Users size={10} className="text-[#800000]" /> Dosen Pembimbing Akademik </label>
             <div className="relative">
               <select
                 value={form.dosenWaliId || ""}
