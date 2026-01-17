@@ -111,8 +111,8 @@ export default function EditMahasiswaPage() {
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><IdCard size={10} className="text-[#800000]" /> NPM</label>
             <input
               value={form.npm}
-              disabled
-              className="w-full p-2.5 bg-gray-100 rounded-xl border-2 border-transparent font-bold text-xs outline-none opacity-60 cursor-not-allowed"
+              onChange={e => setForm({ ...form, npm: e.target.value })}
+              className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none" // Hapus opacity-60 & cursor-not-allowed
             />
           </div>
 
