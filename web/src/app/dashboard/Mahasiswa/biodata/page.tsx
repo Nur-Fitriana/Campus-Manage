@@ -1,9 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, MapPin, Phone, Mail, Calendar, Hash, GraduationCap, BookOpen } from "lucide-react";
+import { 
+  User, 
+  MapPin, 
+  Phone, 
+  Mail, 
+  Calendar, 
+  Hash, 
+  GraduationCap, 
+  BookOpen 
+} from "lucide-react";
 
-// 1. Definisikan struktur data agar TypeScript tidak bingung
+// 1. Definisikan Interface agar TypeScript tahu struktur pastinya
 interface UserData {
   nama: string;
   npm: string;
@@ -14,7 +23,12 @@ interface UserData {
   alamat: string;
 }
 
-function InfoItem({ label, value, icon, isStatus = false }: any) {
+function InfoItem({ label, value, icon, isStatus = false }: { 
+  label: string; 
+  value: string; 
+  icon?: React.ReactNode; 
+  isStatus?: boolean 
+}) {
   return (
     <div className="space-y-1">
       <label className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter flex items-center gap-1">
@@ -30,7 +44,7 @@ function InfoItem({ label, value, icon, isStatus = false }: any) {
 }
 
 export default function BiodataPage() {
-  // 2. Terapkan interface pada useState
+  // 2. Gunakan Interface pada useState
   const [user, setUser] = useState<UserData>({
     nama: "-",
     npm: "-",
@@ -46,15 +60,15 @@ export default function BiodataPage() {
     const savedNPM = localStorage.getItem("userNPM");
     const savedEmail = localStorage.getItem("userEmail");
 
-    // 3. Update state dengan semua kunci yang diwajibkan oleh interface
+    // 3. Update dengan menyertakan SEMUA properti agar TypeScript puas
     setUser({
       nama: savedName || "-",
       npm: savedNPM || "-",
       prodi: "S1 Informatika",
       fakultas: "Teknik dan Ilmu Komputer",
       email: savedEmail || "-",
-      telepon: "-", // Pastikan ini ada
-      alamat: "Alamat belum dilengkapi dalam database.", // Pastikan ini ada
+      telepon: "-", 
+      alamat: "Alamat belum dilengkapi dalam database.",
     });
   }, []);
 
