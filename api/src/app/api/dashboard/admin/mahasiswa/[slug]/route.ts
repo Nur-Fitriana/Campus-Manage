@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
+// Helper CORS yang konsisten dengan API Dosen Anda
 function corsHeaders(res: NextResponse) {
   res.headers.set("Access-Control-Allow-Origin", "http://localhost:3005");
   res.headers.set("Access-Control-Allow-Methods", "GET, PUT, OPTIONS");
@@ -10,35 +11,32 @@ function corsHeaders(res: NextResponse) {
   return res;
 }
 
-// GET: Mengambil data 1 mahasiswa untuk auto-fill form
-export async function GET(req: NextRequest, { params }: { params: Promise<{ npm: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
-    const { npm } = await params; // Gunakan npm sesuai nama folder baru
+    const { slug } = await params; // Await params sesuai standar terbaru
     
     const data = await prisma.mahasiswa.findUnique({ 
-      where: { npm: npm }, // Mencari berdasarkan NPM di database
-      include: { programStudi: true }
+      where: { npm: slug }
     });
     
     if (!data) {
-      return corsHeaders(NextResponse.json({ success: false, message: "Data tidak ditemukan" }, { status: 404 }));
+      return corsHeaders(NextResponse.json({ success: false, message: "Mahasiswa tidak ditemukan" }, { status: 404 }));
     }
 
-    // Mengembalikan key 'mahasiswa' agar terbaca oleh page.tsx Anda
+    // Mengembalikan key 'mahasiswa' agar sinkron dengan setForm di page.tsx Anda
     return corsHeaders(NextResponse.json({ success: true, mahasiswa: data }));
   } catch (error) {
     return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
   }
 }
 
-// PUT: Menyimpan perubahan
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ npm: string }> }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
-    const { npm } = await params;
+    const { slug } = await params;
     const body = await req.json();
 
     const updated = await prisma.mahasiswa.update({
-      where: { npm: npm },
+      where: { npm: slug },
       data: {
         namaLengkap: body.namaLengkap,
         email: body.email,
