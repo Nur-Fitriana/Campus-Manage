@@ -1,24 +1,33 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link"; // Tambahkan ini
 
 export default function MahasiswaLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname(); // Untuk mendeteksi menu mana yang aktif
 
   useEffect(() => {
     const token = localStorage.getItem("user_token");
     const role = localStorage.getItem("user_role");
 
-    // PROTEKSI: Jika Admin nyasar ke sini, balikin ke dashboard admin
     if (!token || role !== "MAHASISWA") {
       router.replace(role === "ADMIN" ? "/dashboard/admin" : "/");
     }
   }, [router]);
 
+  // Daftar Menu Navigasi
+  const menus = [
+    { name: "Halaman Depan", path: "/dashboard/mahasiswa" },
+    { name: "Biodata", path: "/dashboard/mahasiswa/biodata" }, // Pastikan folder ini ada nanti
+    { name: "Perkuliahan", path: "/dashboard/mahasiswa/perkuliahan" },
+    { name: "Laporan", path: "/dashboard/mahasiswa/laporan" },
+  ];
+
   return (
     <section className="min-h-screen bg-[#F0F2F5]">
-      {/* HEADER BANNER RAMPING */}
+      {/* HEADER BANNER */}
       <div className="w-full bg-[#800000] shadow-md border-b-4 border-white">
         <div className="max-w-7xl mx-auto flex items-center h-16 px-4 md:px-8">
           <div className="bg-white p-1.5 rounded-sm mr-4 shadow-sm">
@@ -41,17 +50,26 @@ export default function MahasiswaLayout({ children }: { children: React.ReactNod
         </div>
       </div>
 
-      {/* SUB-NAVIGASI */}
-      <div className="w-full bg-white border-b border-gray-200 px-4 md:px-8 shadow-sm">
-        <div className="max-w-7xl mx-auto flex gap-6 text-[10px] font-bold uppercase py-2.5 text-gray-500">
-          <span className="text-[#800000] border-b-2 border-[#800000] pb-0.5 cursor-pointer">Halaman Depan</span>
-          <span className="hover:text-[#800000] cursor-pointer transition-colors">Biodata</span>
-          <span className="hover:text-[#800000] cursor-pointer transition-colors">Perkuliahan</span>
-          <span className="hover:text-[#800000] cursor-pointer transition-colors">Laporan</span>
+      {/* SUB-NAVIGASI DINAMIS */}
+      <div className="w-full bg-white border-b border-gray-200 px-4 md:px-8 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex gap-6 text-[10px] font-bold uppercase py-2.5">
+          {menus.map((menu) => (
+            <Link 
+              key={menu.path}
+              href={menu.path}
+              className={`transition-all pb-1 border-b-2 ${
+                pathname === menu.path 
+                ? "text-[#800000] border-[#800000]" 
+                : "text-gray-500 border-transparent hover:text-[#800000]"
+              }`}
+            >
+              {menu.name}
+            </Link>
+          ))}
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto">{children}</div>
+      <div className="max-w-7xl mx-auto p-4 md:p-0">{children}</div>
     </section>
   );
 }
