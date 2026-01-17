@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -27,13 +28,13 @@ export default function TambahMahasiswa() {
     email: "",
     noTelepon: "",
     alamat: "",
-    jenisKelamin: "", // Kosongkan agar user memilih
+    jenisKelamin: "",
     tanggalLahir: "",
     angkatan: new Date().getFullYear().toString(),
     programStudiId: ""
   });
 
-  // --- 1. AMBIL DAFTAR PRODI OTOMATIS (Sama seperti Dosen) ---
+  // --- 1. AMBIL DAFTAR PRODI ---
   useEffect(() => {
     const fetchProdi = async () => {
       try {
@@ -49,7 +50,7 @@ export default function TambahMahasiswa() {
     fetchProdi();
   }, []);
 
-  // --- 2. FUNGSI SIMPAN (doSave) ---
+  // --- 2. FUNGSI SIMPAN ---
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -65,7 +66,6 @@ export default function TambahMahasiswa() {
       const payload = {
         ...form,
         angkatan: parseInt(form.angkatan),
-        // Pastikan format tanggal disukai database
         tanggalLahir: new Date(form.tanggalLahir).toISOString(),
       };
 
@@ -85,7 +85,7 @@ export default function TambahMahasiswa() {
         alert("❌ Gagal: " + (result.message || "Periksa data kamu"));
       }
     } catch (error) {
-      alert("❌ Koneksi Gagal! Pastikan Backend 3004 Jalan.");
+      alert("❌ Koneksi Gagal! Pastikan Backend 3004 berjalan.");
     } finally {
       setIsSubmitting(false);
     }
@@ -108,26 +108,46 @@ export default function TambahMahasiswa() {
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
 
+          {/* NPM */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
               <Hash size={14} className="text-[#800000]" /> NPM
             </label>
-            <input required value={form.npm} onChange={e => setForm({ ...form, npm: e.target.value.replace(/\D/g, "") })} className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 outline-none font-bold text-sm shadow-sm" placeholder="Contoh: 23312..." />
+            <input 
+                required 
+                value={form.npm} 
+                onChange={e => setForm({ ...form, npm: e.target.value.replace(/\D/g, "") })} 
+                className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 outline-none font-bold text-sm shadow-sm" 
+                placeholder="Contoh: 23312..." 
+            />
           </div>
 
+          {/* Nama Lengkap */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
               <User size={14} className="text-[#800000]" /> Nama Lengkap
             </label>
-            <input required value={form.namaLengkap} onChange={e => setForm({ ...form, namaLengkap: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 outline-none font-bold text-sm shadow-sm" placeholder="Nama Lengkap..." />
+            <input 
+                required 
+                value={form.namaLengkap} 
+                onChange={e => setForm({ ...form, namaLengkap: e.target.value })} 
+                className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 outline-none font-bold text-sm shadow-sm" 
+                placeholder="Nama Lengkap..." 
+            />
           </div>
 
+          {/* Program Studi */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
               <BookOpen size={14} className="text-[#800000]" /> Program Studi
             </label>
             <div className="relative">
-              <select required value={form.programStudiId} onChange={e => setForm({ ...form, programStudiId: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 outline-none font-bold text-sm appearance-none cursor-pointer shadow-sm">
+              <select 
+                required 
+                value={form.programStudiId} 
+                onChange={e => setForm({ ...form, programStudiId: e.target.value })} 
+                className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 outline-none font-bold text-sm appearance-none cursor-pointer shadow-sm"
+              >
                 <option value="">Pilih Program Studi</option>
                 {daftarProdi.map((prodi) => (
                   <option key={prodi.id} value={prodi.id}>{prodi.nama}</option>
@@ -137,12 +157,18 @@ export default function TambahMahasiswa() {
             </div>
           </div>
 
+          {/* Jenis Kelamin */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
               <Users size={14} className="text-[#800000]" /> Jenis Kelamin
             </label>
             <div className="relative">
-              <select required value={form.jenisKelamin} onChange={e => setForm({ ...form, jenisKelamin: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 outline-none font-bold text-sm appearance-none cursor-pointer shadow-sm">
+              <select 
+                required 
+                value={form.jenisKelamin} 
+                onChange={e => setForm({ ...form, jenisKelamin: e.target.value })} 
+                className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#800000]/20 outline-none font-bold text-sm appearance-none cursor-pointer shadow-sm"
+              >
                 <option value="" disabled hidden>Pilih Jenis Kelamin</option>
                 <option value="LAKI_LAKI">Laki-laki</option>
                 <option value="PEREMPUAN">Perempuan</option>
@@ -151,38 +177,78 @@ export default function TambahMahasiswa() {
             </div>
           </div>
 
+          {/* Angkatan & Tgl Lahir */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase text-gray-500 ml-1 flex items-center gap-2"><Hash size={12} /> Angkatan</label>
-              <input type="number" value={form.angkatan} onChange={e => setForm({ ...form, angkatan: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent outline-none font-bold text-sm shadow-sm" />
+              <input 
+                type="number" 
+                value={form.angkatan} 
+                onChange={e => setForm({ ...form, angkatan: e.target.value })} 
+                className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent outline-none font-bold text-sm shadow-sm" 
+              />
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase text-gray-500 ml-1 flex items-center gap-2"><Calendar size={12} /> Tgl Lahir</label>
-              <input required type="date" value={form.tanggalLahir} onChange={e => setForm({ ...form, tanggalLahir: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm" />
+              <input 
+                required 
+                type="date" 
+                value={form.tanggalLahir} 
+                onChange={e => setForm({ ...form, tanggalLahir: e.target.value })} 
+                className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm" 
+              />
             </div>
           </div>
 
+          {/* Email */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 tracking-[0.15em] ml-1">
               <Mail size={14} className="text-[#800000]" /> Email Akademik
             </label>
-            <input required type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm" placeholder="email@student.com" />
+            <input 
+                required 
+                type="email" 
+                value={form.email} 
+                onChange={e => setForm({ ...form, email: e.target.value })} 
+                className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm" 
+                placeholder="email@student.com" 
+            />
           </div>
 
+          {/* WhatsApp */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 ml-1">
               <Phone size={14} className="text-[#800000]" /> Nomor WhatsApp
             </label>
-            <input type="text" value={form.noTelepon} onChange={e => setForm({ ...form, noTelepon: e.target.value.replace(/\D/g, "") })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm" placeholder="0812..." />
+            <input 
+                type="text" 
+                value={form.noTelepon} 
+                onChange={e => setForm({ ...form, noTelepon: e.target.value.replace(/\D/g, "") })} 
+                className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm" 
+                placeholder="0812..." 
+            />
           </div>
 
+          {/* Alamat */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 ml-1"><MapPin size={14} className="text-[#800000]" /> Alamat Lengkap</label>
-            <input value={form.alamat} onChange={e => setForm({ ...form, alamat: e.target.value })} className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm" placeholder="Jl. Contoh..." />
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 ml-1">
+                <MapPin size={14} className="text-[#800000]" /> Alamat Lengkap
+            </label>
+            <input 
+                value={form.alamat} 
+                onChange={e => setForm({ ...form, alamat: e.target.value })} 
+                className="w-full p-4 bg-gray-50 rounded-2xl outline-none font-bold text-sm shadow-sm" 
+                placeholder="Jl. Contoh..." 
+            />
           </div>
 
+          {/* Tombol Simpan */}
           <div className="md:col-span-2 pt-6">
-            <button type="submit" disabled={isSubmitting} className="w-full bg-[#800000] hover:bg-black text-white py-5 rounded-2xl font-black uppercase text-xs tracking-[0.5em] transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95 disabled:opacity-50">
+            <button 
+              type="submit" 
+              disabled={isSubmitting} 
+              className="w-full bg-[#800000] hover:bg-black text-white py-5 rounded-2xl font-black uppercase text-xs tracking-[0.5em] transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95 disabled:opacity-50"
+            >
               <Save size={20} />
               {isSubmitting ? "PROSES MENYIMPAN..." : "SIMPAN DATA MAHASISWA"}
             </button>
@@ -191,4 +257,4 @@ export default function TambahMahasiswa() {
       </div>
     </div>
   );
-} 
+}
