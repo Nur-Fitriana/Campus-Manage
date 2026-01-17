@@ -59,7 +59,7 @@ export default function EditMahasiswaPage() {
     setIsSubmitting(true);
     try {
       // PERBAIKAN: Gunakan relative path
-      const res = await fetch(`/api/dashboard/admin/mahasiswa/${slug}`, {
+      const res = await fetch(`http://localhost:3004/api/dashboard/admin/mahasiswa/${slug}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
