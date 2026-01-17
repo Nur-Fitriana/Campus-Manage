@@ -10,33 +10,35 @@ function corsHeaders(res: NextResponse) {
   return res;
 }
 
-// FUNGSI GET (Inilah yang memperbaiki 404 dan SyntaxError)
-export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+// GET: Mengambil data 1 mahasiswa untuk auto-fill form
+export async function GET(req: NextRequest, { params }: { params: Promise<{ npm: string }> }) {
   try {
-    const { slug } = await params;
+    const { npm } = await params; // Gunakan npm sesuai nama folder baru
     
     const data = await prisma.mahasiswa.findUnique({ 
-      where: { npm: slug } 
+      where: { npm: npm }, // Mencari berdasarkan NPM di database
+      include: { programStudi: true }
     });
     
     if (!data) {
-      return corsHeaders(NextResponse.json({ success: false, message: "NPM tidak ditemukan" }, { status: 404 }));
+      return corsHeaders(NextResponse.json({ success: false, message: "Data tidak ditemukan" }, { status: 404 }));
     }
 
-    // Mengembalikan objek 'mahasiswa' agar form di frontend otomatis terisi
+    // Mengembalikan key 'mahasiswa' agar terbaca oleh page.tsx Anda
     return corsHeaders(NextResponse.json({ success: true, mahasiswa: data }));
   } catch (error) {
     return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+// PUT: Menyimpan perubahan
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ npm: string }> }) {
   try {
-    const { slug } = await params;
+    const { npm } = await params;
     const body = await req.json();
 
     const updated = await prisma.mahasiswa.update({
-      where: { npm: slug },
+      where: { npm: npm },
       data: {
         namaLengkap: body.namaLengkap,
         email: body.email,
@@ -48,7 +50,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug
 
     return corsHeaders(NextResponse.json({ success: true, data: updated }));
   } catch (error) {
-    return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
+    return corsHeaders(NextResponse.json({ success: false, message: "Gagal Update" }, { status: 500 }));
   }
 }
 
