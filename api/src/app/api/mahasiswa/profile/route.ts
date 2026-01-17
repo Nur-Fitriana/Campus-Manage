@@ -1,22 +1,29 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    // Kita langsung masukkan ID Nur Fitriana dari Prisma Studio
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const token = authHeader.split(" ")[1];
+    // Menggunakan rahasia yang kamu buat tadi
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "rahasia_campus_manage123") as { id: string };
+
     const profile = await prisma.mahasiswa.findUnique({
-      where: { userId: "6a5e15b9-067c-4bf8-bb9b-62e5cdb14a7d" }, // ID dari screenshot kamu
+      where: { userId: decoded.id }, 
       include: {
-        programStudi: true,
+        programStudi: true
       }
     });
 
-    if (!profile) return NextResponse.json({ error: "Data tidak ada di Database" }, { status: 404 });
+    if (!profile) return NextResponse.json({ error: "Data mahasiswa tidak ditemukan" }, { status: 404 });
 
     return NextResponse.json(profile);
   } catch (error) {
-    return NextResponse.json({ error: "Server Error" }, { status: 500 });
+    return NextResponse.json({ error: "Sesi berakhir" }, { status: 401 });
   }
 }
