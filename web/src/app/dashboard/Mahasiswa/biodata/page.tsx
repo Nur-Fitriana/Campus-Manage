@@ -3,7 +3,7 @@
 import { useState, useEffect, ReactNode } from "react";
 import { User, MapPin, Phone, Mail, Calendar, Hash, GraduationCap, BookOpen } from "lucide-react";
 
-// 1. Definisikan Interface sesuai dengan skema Prisma Mahasiswa
+// Interface sesuai field Prisma
 interface UserData {
   namaLengkap: string;
   npm: string;
@@ -17,56 +17,30 @@ interface UserData {
   status: string;
 }
 
-// 2. Tipe Data untuk Komponen InfoItem (Tanpa Any)
-interface InfoItemProps {
-  label: string;
-  value: string;
-  icon?: ReactNode;
-  isStatus?: boolean;
-}
-
-function InfoItem({ label, value, icon, isStatus = false }: InfoItemProps) {
-  return (
-    <div className="space-y-1">
-      <label className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter flex items-center gap-1">
-        {icon} {label}
-      </label>
-      <div className={`text-[11px] font-semibold py-1.5 px-3 border border-gray-50 rounded-sm ${
-        isStatus ? "bg-green-50 text-green-700 w-fit px-4" : "bg-gray-50 text-gray-700"
-      }`}>
-        {value}
-      </div>
-    </div>
-  );
-}
-
 export default function BiodataPage() {
-  // 3. Inisialisasi State dengan tipe UserData
-  const [user, setUser] = useState<UserData>({
-    namaLengkap: "-",
-    npm: "-",
-    prodi: "-",
-    fakultas: "-",
-    email: "-",
-    noTelepon: "-",
-    alamat: "-",
-    tempatLahir: "-",
-    tanggalLahir: "",
-    status: "-"
-  });
+  const [user, setUser] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProfile = async () => {
+      // AMBIL DENGAN NAMA YANG SAMA SEPERTI DI LOGIN PAGE
       const token = localStorage.getItem("user_token");
-      if (!token) return;
+      
+      if (!token) {
+        console.error("Token tidak ditemukan di localStorage");
+        setLoading(false);
+        return;
+      }
 
       try {
         const res = await fetch("/api/mahasiswa/profile", {
           headers: { Authorization: `Bearer ${token}` }
         });
+        
+        if (!res.ok) throw new Error("Gagal mengambil data dari server");
+        
         const data = await res.json();
 
-        // Pemetaan data dari API/Prisma ke State
         setUser({
           namaLengkap: data.namaLengkap || "-",
           npm: data.npm || "-",
@@ -80,61 +54,49 @@ export default function BiodataPage() {
           status: data.status || "AKTIF"
         });
       } catch (err) {
-        console.error("Gagal memuat biodata");
+        console.error("Error Fetching:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProfile();
   }, []);
 
+  if (loading) return <div className="p-8 text-center text-xs font-bold">LOADING DATA...</div>;
+  if (!user) return <div className="p-8 text-center text-red-500 font-bold tracking-tighter uppercase text-xs">Gagal Memuat Profil. Silakan Login Ulang.</div>;
+
   return (
     <div className="p-4 md:p-8 animate-in fade-in duration-700">
+      {/* Tampilan biodata yang sudah kita buat sebelumnya */}
       <div className="bg-white border border-gray-200 shadow-sm rounded-sm">
         <div className="bg-[#f8f9fa] px-6 py-3 border-b border-gray-200 flex items-center gap-2">
           <User size={16} className="text-[#800000]" />
-          <h2 className="text-[#800000] font-bold text-[12px] uppercase tracking-wider">
-            Biodata Lengkap Mahasiswa
-          </h2>
+          <h2 className="text-[#800000] font-bold text-[12px] uppercase tracking-wider">Biodata Lengkap Mahasiswa</h2>
         </div>
-
         <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-3 flex flex-col items-center">
-              <div className="w-40 h-52 bg-gray-50 border-2 border-gray-100 rounded-sm flex items-center justify-center text-[10px] text-gray-300 font-bold uppercase p-4 text-center">
-                PHOTO <br/> {user.npm}
-              </div>
-            </div>
-
-            <div className="lg:col-span-9 space-y-6">
-              <div>
-                <h3 className="text-[11px] font-bold text-gray-400 uppercase border-b border-gray-100 pb-1 mb-4 flex items-center gap-2">
-                  <GraduationCap size={14} /> Informasi Akademik
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InfoItem label="NPM" value={user.npm} icon={<Hash size={12}/>} />
-                  <InfoItem label="Program Studi" value={user.prodi} icon={<BookOpen size={12}/>} />
-                  <InfoItem label="Fakultas" value={user.fakultas} />
-                  <InfoItem label="Status Mahasiswa" value={user.status} isStatus />
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <h3 className="text-[11px] font-bold text-gray-400 uppercase border-b border-gray-100 pb-1 mb-4 flex items-center gap-2">
-                  <User size={14} /> Data Pribadi
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InfoItem label="Nama Lengkap" value={user.namaLengkap} />
-                  <InfoItem label="Email" value={user.email} icon={<Mail size={12}/>} />
-                  <InfoItem label="No. Telepon" value={user.noTelepon} icon={<Phone size={12}/>} />
-                  <InfoItem label="Tempat, Tanggal Lahir" value={`${user.tempatLahir}, ${user.tanggalLahir}`} icon={<Calendar size={12}/>} />
-                </div>
-                <div className="mt-4">
-                  <InfoItem label="Alamat Tinggal" value={user.alamat} icon={<MapPin size={12}/>} />
-                </div>
-              </div>
-            </div>
-          </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoItem label="Nama Lengkap" value={user.namaLengkap} />
+              <InfoItem label="NPM" value={user.npm} icon={<Hash size={12}/>} />
+              <InfoItem label="Program Studi" value={user.prodi} icon={<BookOpen size={12}/>} />
+              <InfoItem label="Email" value={user.email} icon={<Mail size={12}/>} />
+              <InfoItem label="Alamat" value={user.alamat} icon={<MapPin size={12}/>} />
+           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Komponen Pendukung
+function InfoItem({ label, value, icon }: { label: string; value: string; icon?: ReactNode }) {
+  return (
+    <div className="space-y-1">
+      <label className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter flex items-center gap-1">
+        {icon} {label}
+      </label>
+      <div className="text-[11px] font-semibold py-1.5 px-3 border border-gray-50 rounded-sm bg-gray-50 text-gray-700">
+        {value}
       </div>
     </div>
   );
