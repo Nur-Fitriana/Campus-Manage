@@ -4,17 +4,18 @@ import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
     if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
-    // Pastikan rahasia ini sama dengan yang di .env saat login
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "rahasia_campus_manage123") as { id: string };
 
     const profile = await prisma.mahasiswa.findUnique({
-      where: { userId: decoded.id }, 
+      where: { userId: decoded.id },
       include: { programStudi: true }
     });
 
@@ -22,7 +23,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json(profile);
   } catch (error) {
-    console.error("Fetch Error:", error);
-    return NextResponse.json({ error: "Sesi habis" }, { status: 401 });
+    return NextResponse.json({ error: "Sesi tidak valid" }, { status: 401 });
   }
 }
