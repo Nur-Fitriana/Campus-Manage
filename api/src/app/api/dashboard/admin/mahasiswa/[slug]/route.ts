@@ -3,22 +3,24 @@ import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-// Ambil data SATU mahasiswa berdasarkan NPM untuk Auto-fill
+// Ambil data SATU mahasiswa berdasarkan NPM (untuk Auto-fill form)
 export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
   try {
     const data = await prisma.mahasiswa.findUnique({
-      where: { npm: params.slug },
+      where: { npm: params.slug }
     });
     
-    if (!data) return NextResponse.json({ success: false, message: "Mahasiswa tidak ditemukan" }, { status: 404 });
+    if (!data) {
+      return NextResponse.json({ success: false, message: "Data tidak ditemukan" }, { status: 404 });
+    }
     
     return NextResponse.json({ success: true, mahasiswa: data });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "DB Error" }, { status: 500 });
+    return NextResponse.json({ success: false }, { status: 500 });
   }
 }
 
-// Update data mahasiswa saat tombol simpan diklik
+// Update data mahasiswa (saat tombol simpan diklik)
 export async function PUT(req: NextRequest, { params }: { params: { slug: string } }) {
   try {
     const body = await req.json();
