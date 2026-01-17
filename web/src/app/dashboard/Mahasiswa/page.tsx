@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Poppins } from 'next/font/google';
 import { useRouter } from "next/navigation";
-import { Mail, MessageSquare, Megaphone, ChevronRight, LogOut, User, BookOpen, FileText, Home } from "lucide-react";
+import { Mail, MessageSquare, Megaphone, ChevronRight, LogOut, User, BookOpen, FileText } from "lucide-react";
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -38,23 +38,23 @@ export default function MahasiswaDashboard() {
     }
   }, []);
 
-  // FUNGSI RENDER KONTEN DINAMIS
+  // FUNGSI RENDER KONTEN DINAMIS (PENGGANTI ISI TENGAH)
   const renderContent = () => {
     switch (activeTab) {
       case "BIODATA":
         return (
           <div className="bg-white border border-gray-200 p-6 shadow-sm rounded-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <h2 className="text-[#0056b3] font-bold text-[12px] mb-4 border-b pb-2 uppercase flex items-center gap-2">
-              <User size={14} /> Data Diri Mahasiswa
+            <h2 className="text-[#0056b3] font-bold text-[12px] mb-4 border-b pb-2 uppercase flex items-center gap-2 italic">
+              <User size={14} /> Profil Mahasiswa
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4 text-[11px]">
               <div className="space-y-3">
-                <p className="flex flex-col"><span className="text-gray-400 font-bold uppercase">Nama Lengkap</span> <span className="text-gray-700 font-semibold">{userName}</span></p>
-                <p className="flex flex-col"><span className="text-gray-400 font-bold uppercase">NPM</span> <span className="text-gray-700 font-semibold">{userNPM}</span></p>
+                <p className="flex flex-col"><span className="text-gray-400 font-bold uppercase tracking-tighter">Nama Lengkap</span> <span className="text-gray-700 font-semibold">{userName}</span></p>
+                <p className="flex flex-col"><span className="text-gray-400 font-bold uppercase tracking-tighter">NPM</span> <span className="text-gray-700 font-semibold">{userNPM}</span></p>
               </div>
               <div className="space-y-3">
-                <p className="flex flex-col"><span className="text-gray-400 font-bold uppercase">Program Studi</span> <span className="text-gray-700 font-semibold">S1 INFORMATIKA</span></p>
-                <p className="flex flex-col"><span className="text-gray-400 font-bold uppercase">Fakultas</span> <span className="text-gray-700 font-semibold">Teknik dan Ilmu Komputer</span></p>
+                <p className="flex flex-col"><span className="text-gray-400 font-bold uppercase tracking-tighter">Program Studi</span> <span className="text-gray-700 font-semibold">S1 INFORMATIKA</span></p>
+                <p className="flex flex-col"><span className="text-gray-400 font-bold uppercase tracking-tighter">Fakultas</span> <span className="text-gray-700 font-semibold">TEKNIK DAN ILMU KOMPUTER</span></p>
               </div>
             </div>
           </div>
@@ -63,14 +63,14 @@ export default function MahasiswaDashboard() {
         return (
           <div className="bg-white border border-gray-200 p-10 shadow-sm rounded-sm text-center animate-in fade-in duration-500">
             <BookOpen className="mx-auto mb-3 text-gray-200" size={40} />
-            <p className="text-[11px] italic text-gray-400 font-bold uppercase tracking-widest">Informasi Perkuliahan Belum Tersedia</p>
+            <p className="text-[11px] italic text-gray-400 font-bold uppercase tracking-widest">Informasi Akademik / KRS Belum Tersedia</p>
           </div>
         );
       case "LAPORAN":
         return (
           <div className="bg-white border border-gray-200 p-10 shadow-sm rounded-sm text-center animate-in fade-in duration-500">
             <FileText className="mx-auto mb-3 text-gray-200" size={40} />
-            <p className="text-[11px] italic text-gray-400 font-bold uppercase tracking-widest">Belum Ada Laporan Akademik</p>
+            <p className="text-[11px] italic text-gray-400 font-bold uppercase tracking-widest">Belum Ada Laporan Hasil Studi</p>
           </div>
         );
       default: // BERANDA
@@ -136,7 +136,7 @@ export default function MahasiswaDashboard() {
           <div className="lg:col-span-6 space-y-5">
             
             {/* NAVIGASI MENU ATAS */}
-            <div className="flex items-center gap-6 border-b border-gray-200 mb-6 pb-2 px-2 overflow-x-auto scrollbar-hide bg-white py-2 sticky top-0 z-10">
+            <div className="flex items-center gap-6 border-b border-gray-200 mb-6 pb-2 px-2 overflow-x-auto scrollbar-hide bg-white py-1 sticky top-0 z-10">
               {['BERANDA', 'BIODATA', 'PERKULIAHAN', 'LAPORAN'].map((tab) => (
                 <button
                   key={tab}
@@ -152,7 +152,7 @@ export default function MahasiswaDashboard() {
               ))}
             </div>
 
-            {/* KONTEN DINAMIS BERDASARKAN TAB */}
+            {/* ISI TENGAH YANG BERUBAH-UBAH */}
             {renderContent()}
           </div>
 
@@ -161,7 +161,7 @@ export default function MahasiswaDashboard() {
             <div className="bg-white border border-gray-200 p-5 shadow-sm rounded-sm text-center">
               <div className="bg-[#f8f9fa] py-1 mb-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest border border-gray-100">Informasi Pengguna</div>
               <div className="w-28 h-36 bg-gray-50 border border-gray-200 mx-auto mb-3 flex items-center justify-center text-[9px] text-gray-300 font-bold uppercase p-2 text-center overflow-hidden">
-                <User size={40} className="opacity-10" />
+                 PHOTO <br/> {userNPM}
               </div>
               
               <h3 className="text-[#0056b3] font-bold text-[11px] uppercase mb-1 truncate px-2">{userName}</h3>
@@ -186,7 +186,7 @@ export default function MahasiswaDashboard() {
                     key={item} 
                     onClick={() => {
                       if(item === 'Halaman Depan') setActiveTab('BERANDA');
-                      if(item === 'KRS') setActiveTab('PERKULIAHAN');
+                      if(item === 'KRS' || item === 'KHS') setActiveTab('PERKULIAHAN');
                     }}
                     className="flex items-center gap-2 p-2.5 text-[10px] text-[#856404] hover:bg-yellow-50 cursor-pointer group transition-all"
                   >
