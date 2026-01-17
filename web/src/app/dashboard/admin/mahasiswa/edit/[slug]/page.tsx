@@ -8,7 +8,7 @@ import Link from "next/link";
 export default function EditMahasiswaPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug; 
+  const slug = params.slug;
 
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,10 +27,10 @@ export default function EditMahasiswaPage() {
     const fetchData = async () => {
       try {
         // PERBAIKAN: Gunakan relative path untuk menghindari error Port 3004
-        const res = await fetch(`/api/dashboard/admin/mahasiswa/${slug}`, {
-  cache: "no-store" 
-});
-        
+        const res = await fetch(`/dashboard/admin/mahasiswa/${slug}`, {
+          cache: "no-store"
+        });
+
         const json = await res.json();
 
         if (json.success) {
@@ -64,7 +64,7 @@ export default function EditMahasiswaPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
       });
-      
+
       const result = await res.json();
       if (result.success) {
         alert("✅ Data Mahasiswa Berhasil Diperbarui!");
@@ -73,10 +73,10 @@ export default function EditMahasiswaPage() {
       } else {
         alert("Gagal update: " + (result.error || "Terjadi kesalahan"));
       }
-    } catch (err) { 
-      alert("Gagal update data. Pastikan API Route sudah benar."); 
-    } finally { 
-      setIsSubmitting(false); 
+    } catch (err) {
+      alert("Gagal update data. Pastikan API Route sudah benar.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
