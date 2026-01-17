@@ -22,40 +22,47 @@ export default function BiodataPage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const token = localStorage.getItem("user_token");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const res = await fetch("/api/mahasiswa/profile", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const token = localStorage.getItem("user_token"); // Pastikan nama key ini sama dengan saat login
         
-        if (!res.ok) throw new Error();
-        
-        const data = await res.json();
-        
-        // Memasukkan data sesuai field di schema.prisma
-        setUser({
-          namaLengkap: data.namaLengkap,
-          npm: data.npm,
-          prodi: data.programStudi?.nama || "-",
-          fakultas: data.programStudi?.fakultas || "-",
-          email: data.email,
-          noTelepon: data.noTelepon,
-          alamat: data.alamat,
-          angkatan: data.angkatan,
-          ipk: data.ipk,
-          status: data.status,
-        });
-      } catch (err) {
-        console.error("Gagal memuat data");
-      } finally {
-        setLoading(false);
-      }
-    };
+        if (!token) {
+          console.error("Token tidak ditemukan, silakan login ulang");
+          setLoading(false);
+          return;
+        }
+      
+        try {
+          const res = await fetch("/api/mahasiswa/profile", {
+            headers: { 
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
+          });
+          
+          if (!res.ok) {
+            const errorData = await res.json();
+            console.error("API Error:", errorData.error);
+            throw new Error(errorData.error);
+          }
+          
+          const data = await res.json();
+          setUser({
+            namaLengkap: data.namaLengkap,
+            npm: data.npm,
+            prodi: data.programStudi?.nama || "-",
+            fakultas: data.programStudi?.fakultas || "-",
+            email: data.email,
+            noTelepon: data.noTelepon,
+            alamat: data.alamat,
+            angkatan: data.angkatan,
+            ipk: data.ipk,
+            status: data.status,
+          });
+        } catch (err) {
+          console.error("Gagal memuat data:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
     fetchProfile();
   }, []);
 
