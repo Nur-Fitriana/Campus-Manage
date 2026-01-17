@@ -1,8 +1,9 @@
-import { PrismaClient, JenisKelamin } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
+// Fungsi helper CORS disamakan persis dengan contoh dosen
 function corsHeaders(res: NextResponse) {
   res.headers.set("Access-Control-Allow-Origin", "http://localhost:3005");
   res.headers.set("Access-Control-Allow-Methods", "GET, PUT, OPTIONS");
@@ -12,18 +13,19 @@ function corsHeaders(res: NextResponse) {
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
-    const { slug } = await params;
+    const { slug } = await params; // Await params sesuai standar terbaru
     
-    const data = await prisma.dosen.findUnique({ 
-      where: { nip: slug },
+    const data = await prisma.mahasiswa.findUnique({ 
+      where: { npm: slug },
       include: { programStudi: true } // WAJIB: agar nama prodi muncul
     });
     
     if (!data) {
-      return corsHeaders(NextResponse.json({ success: false, message: "Dosen tidak ditemukan" }, { status: 404 }));
+      return corsHeaders(NextResponse.json({ success: false, message: "Mahasiswa tidak ditemukan" }, { status: 404 }));
     }
 
-    return corsHeaders(NextResponse.json({ success: true, data }));
+    // Mengembalikan key 'mahasiswa' agar sinkron dengan Frontend kamu
+    return corsHeaders(NextResponse.json({ success: true, mahasiswa: data }));
   } catch (error) {
     return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
   }
@@ -34,15 +36,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ slug
     const { slug } = await params;
     const body = await req.json();
 
-    const updated = await prisma.dosen.update({
-      where: { nip: slug },
+    const updated = await prisma.mahasiswa.update({
+      where: { npm: slug },
       data: {
         namaLengkap: body.namaLengkap,
         email: body.email,
         noTelepon: body.noTelepon,
         alamat: body.alamat,
-        jabatan: body.jabatan,
-        jenisKelamin: body.jenisKelamin as JenisKelamin,
+        status: body.status,
+        // Tambahkan field lain di sini sesuai schema prisma kamu jika diperlukan
       },
     });
 
