@@ -57,7 +57,8 @@ export default function EditMahasiswaPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch(`http://localhost:3004/api/dashboard/admin/mahasiswa/${slug}`, {
+      const res = await fetch(`/api/dashboard/admin/mahasiswa/${slug}`, {
+      cache: "no-store",
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
