@@ -10,14 +10,13 @@ export async function GET(req: Request) {
     if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
-    // "secret" harus sama dengan yang ada di file login kamu
+    // Ganti "secret" dengan JWT_SECRET yang ada di .env kamu
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret") as { id: string };
 
-    // Mencari data berdasarkan userId
     const profile = await prisma.mahasiswa.findUnique({
-      where: { userId: decoded.id },
+      where: { userId: decoded.id }, // Relasi ke tabel User
       include: {
-        programStudi: true, // Untuk mendapatkan nama Fakultas & Prodi
+        programStudi: true, // Mengambil data nama prodi dan fakultas
       }
     });
 
