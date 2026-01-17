@@ -2,16 +2,31 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Save, ArrowLeft, User, IdCard, Mail, MapPin, Phone, ChevronDown } from "lucide-react";
+import { Save, ArrowLeft, User, IdCard, Mail, MapPin, Phone, ChevronDown, GraduationCap, Users } from "lucide-react";
 import Link from "next/link";
+
+// --- DEFINISI INTERFACE SESUAI SCHEMA PRISMA ---
+interface ProgramStudi {
+  id: string;
+  nama: string;
+}
+
+interface Dosen {
+  id: string;
+  namaLengkap: string;
+}
 
 export default function EditMahasiswaPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug;
+  const slug = params.slug as string; // Pastikan slug adalah string
 
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // --- STATE DENGAN TIPE DATA INTERFACE ---
+  const [prodis, setProdis] = useState<ProgramStudi[]>([]);
+  const [dosens, setDosens] = useState<Dosen[]>([]);
 
   const [form, setForm] = useState({
     npm: "",
@@ -19,39 +34,35 @@ export default function EditMahasiswaPage() {
     email: "",
     noTelepon: "",
     alamat: "",
-    status: ""
+    status: "",
+    programStudiId: "",
+    dosenWaliId: ""
   });
 
-  // Tambahkan di dalam fungsi EditMahasiswaPage
-const [prodis, setProdis] = useState([]);
-const [dosens, setDosens] = useState([]);
-
-// Di dalam useEffect fetchData, tambahkan ini:
-useEffect(() => {
-  const fetchOptions = async () => {
-    try {
-      // Ambil daftar prodi & dosen untuk dropdown
-      const [resP, resD] = await Promise.all([
-        fetch(`http://localhost:3004/api/dashboard/admin/program-studi`),
-        fetch(`http://localhost:3004/api/dashboard/admin/dosen`)
-      ]);
-      const dataP = await resP.json();
-      const dataD = await resD.json();
-      
-      if (dataP.success) setProdis(dataP.data);
-      if (dataD.success) setDosens(dataD.data);
-    } catch (e) {
-      console.error("Gagal ambil opsi:", e);
-    }
-  };
-  fetchOptions();
-}, []);
+  // FETCH DATA DROPDOWN (PRODI & DOSEN)
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const [resP, resD] = await Promise.all([
+          fetch(`http://localhost:3004/api/dashboard/admin/program-studi`),
+          fetch(`http://localhost:3004/api/dashboard/admin/dosen`)
+        ]);
+        const dataP = await resP.json();
+        const dataD = await resD.json();
+        
+        if (dataP.success) setProdis(dataP.data);
+        if (dataD.success) setDosens(dataD.data);
+      } catch (e) {
+        console.error("Gagal ambil opsi:", e);
+      }
+    };
+    fetchOptions();
+  }, []);
 
   // FUNGSI AUTO-FILL: Mengambil data lama
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // PERBAIKAN: Gunakan relative path untuk menghindari error Port 3004
         const res = await fetch(`http://localhost:3004/api/dashboard/admin/mahasiswa/${slug}`, {
           cache: "no-store"
         });
@@ -59,7 +70,6 @@ useEffect(() => {
         const json = await res.json();
 
         if (json.success) {
-          // Sesuaikan dengan struktur JSON yang dikembalikan API kamu
           const m = json.mahasiswa || json.data;
           setForm({
             npm: m.npm || "",
@@ -67,7 +77,9 @@ useEffect(() => {
             email: m.email || "",
             noTelepon: m.noTelepon || "",
             alamat: m.alamat || "",
-            status: m.status || "AKTIF"
+            status: m.status || "AKTIF",
+            programStudiId: m.programStudiId || "",
+            dosenWaliId: m.dosenWaliId || ""
           });
         }
       } catch (e) {
@@ -83,7 +95,6 @@ useEffect(() => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // PERBAIKAN: Gunakan relative path
       const res = await fetch(`http://localhost:3004/api/dashboard/admin/mahasiswa/${slug}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -127,11 +138,9 @@ useEffect(() => {
           </h1>
           <div className="h-1 w-10 bg-[#800000] mt-2 rounded-full"></div>
           <p className="text-gray-400 font-bold text-[8px] uppercase tracking-[0.2em] mt-2">
-            NPM: <span className="text-black">{slug}</span>
+            NPM LAMA: <span className="text-black">{slug}</span>
           </p>
         </div>
-
-        
 
         <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <div className="space-y-1">
@@ -139,7 +148,7 @@ useEffect(() => {
             <input
               value={form.npm}
               onChange={e => setForm({ ...form, npm: e.target.value })}
-              className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none" // Hapus opacity-60 & cursor-not-allowed
+              className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs outline-none"
             />
           </div>
 
@@ -172,6 +181,43 @@ useEffect(() => {
             />
           </div>
 
+          {/* DROP DOWN PROGRAM STUDI */}
+          <div className="space-y-1">
+            <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><GraduationCap size={10} className="text-[#800000]" /> Program Studi</label>
+            <div className="relative">
+              <select
+                value={form.programStudiId}
+                onChange={e => setForm({ ...form, programStudiId: e.target.value })}
+                className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs appearance-none outline-none cursor-pointer"
+                required
+              >
+                <option value="">Pilih Program Studi</option>
+                {prodis.map((p) => (
+                  <option key={p.id} value={p.id}>{p.nama}</option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* DROP DOWN DOSEN WALI */}
+          <div className="space-y-1">
+            <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><Users size={10} className="text-[#800000]" /> Dosen </label>
+            <div className="relative">
+              <select
+                value={form.dosenWaliId || ""}
+                onChange={e => setForm({ ...form, dosenWaliId: e.target.value })}
+                className="w-full p-2.5 bg-gray-50/50 rounded-xl border-2 border-transparent focus:border-[#800000]/10 focus:bg-white transition-all font-bold text-xs appearance-none outline-none cursor-pointer"
+              >
+                <option value="">Tanpa Dosen Wali</option>
+                {dosens.map((d) => (
+                  <option key={d.id} value={d.id}>{d.namaLengkap}</option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
           <div className="space-y-1 md:col-span-2">
             <label className="flex items-center gap-2 text-[8px] font-black uppercase text-gray-400 tracking-widest ml-1"><MapPin size={10} className="text-[#800000]" /> Alamat</label>
             <textarea
@@ -192,7 +238,8 @@ useEffect(() => {
                 <option value="AKTIF">AKTIF</option>
                 <option value="CUTI">CUTI</option>
                 <option value="LULUS">LULUS</option>
-                <option value="DROPOUT">DROPOUT</option>
+                <option value="NON_AKTIF">NON AKTIF</option>
+                <option value="DROP_OUT">DROP OUT</option>
               </select>
               <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             </div>
