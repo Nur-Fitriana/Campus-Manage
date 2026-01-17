@@ -1,3 +1,10 @@
+import Link from "next/link";
+
+// Contoh di menu navigasi:
+<Link href="/dashboard/mahasiswa/biodata" className="hover:text-[#800000] cursor-pointer">
+  Biodata
+</Link>
+
 export default function BiodataPage() {
     return (
       <div className="p-6 bg-white shadow-sm mt-5 border border-gray-200">
