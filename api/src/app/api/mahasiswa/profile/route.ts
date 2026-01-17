@@ -10,21 +10,22 @@ export async function GET(req: Request) {
     if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
-    // "secret" harus sama dengan yang ada di proses login kamu
+    // Pastikan "secret" sama dengan yang ada di proses login kamu
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret") as { id: string };
 
+    // Cari data berdasarkan userId dari token
     const profile = await prisma.mahasiswa.findUnique({
       where: { userId: decoded.id },
       include: {
-        programStudi: true,
+        programStudi: true, // Ambil data fakultas dan prodi
       }
     });
 
-    if (!profile) return NextResponse.json({ error: "Data tidak ditemukan" }, { status: 404 });
+    if (!profile) return NextResponse.json({ error: "Data mahasiswa tidak ditemukan" }, { status: 404 });
 
     return NextResponse.json(profile);
   } catch (error) {
     console.error("API Error:", error);
-    return NextResponse.json({ error: "Token tidak valid atau server error" }, { status: 401 });
+    return NextResponse.json({ error: "Token tidak valid" }, { status: 401 });
   }
 }
