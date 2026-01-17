@@ -77,7 +77,7 @@ export default function AddProdi() {
           />
 
           <button type="submit" disabled={loading} className="w-full bg-[#800000] text-white py-5 rounded-2xl font-black uppercase shadow-lg active:scale-95 disabled:bg-gray-400">
-            {loading ? "PROSES..." : "SIMPAN DATA SEKARANG"}
+            {loading ? "PROSES..." : "SIMPAN DATA PRODI SEKARANG"}
           </button>
         </form>
       </div>
