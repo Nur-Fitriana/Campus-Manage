@@ -20,7 +20,14 @@ function corsHeaders(res: NextResponse) {
 
 export async function GET() {
   try {
-    const data = await prisma.programStudi.findMany({ orderBy: { nama: "asc" } });
+    const data = await prisma.programStudi.findMany({ 
+      orderBy: { nama: "asc" },
+      include: {
+        _count: {
+          select: { dosen: true } // Menghitung jumlah dosen di prodi tersebut
+        }
+      }
+    });
     return corsHeaders(NextResponse.json({ success: true, data }));
   } catch (error) {
     return corsHeaders(NextResponse.json({ success: false }, { status: 500 }));
